@@ -11,7 +11,7 @@ class MainApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: "yet-another-todo-list-app",
+      title: "Yet Another Todo List App",
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
@@ -33,24 +33,20 @@ class TodoView extends StatefulWidget {
 }
 
 class _TodoViewState extends State<TodoView> {  
-  void openSettings() =>{
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const SettingsView()),
-    )
-  };
+  void openSettings() => Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const SettingsView()),
+  );
 
-  void add(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => SimpleDialog(
-        title: const Text("Add Todo"),
-        children: [
-          const Text("Placeholder"),
-        ],
-      ),
-    );
-  }
+  void add(BuildContext context) => showDialog(
+    context: context,
+    builder: (context) => SimpleDialog(
+      title: const Text("Add Todo"),
+      children: [
+        const Text("Placeholder"),
+      ],
+    ),
+  );
 
   @override
   Widget build(BuildContext context) {
