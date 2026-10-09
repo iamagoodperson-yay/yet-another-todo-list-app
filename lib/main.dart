@@ -5,6 +5,13 @@ void main() {
   runApp(const MainApp());
 }
 
+class Todo {
+  String title;
+  bool completed;
+
+  Todo({required this.title, this.completed = false});
+}
+
 class MainApp extends StatelessWidget {
   const MainApp({super.key});
 
@@ -32,18 +39,55 @@ class TodoView extends StatefulWidget {
   State<TodoView> createState() => _TodoViewState();
 }
 
-class _TodoViewState extends State<TodoView> {  
+class _TodoViewState extends State<TodoView> {
+  final TextEditingController _titleController = TextEditingController();
+
+  List<Todo> todos = [];
+
   void openSettings() => Navigator.push(
     context,
     MaterialPageRoute(builder: (context) => const SettingsView()),
   );
 
-  void add(BuildContext context) => showDialog(
+  void addTodo(String title) {
+    title.trim();
+    if (title.isNotEmpty) {
+      setState(() {
+        todos.add(Todo(title: title));
+      });
+      _titleController.clear();
+      Navigator.pop(context);
+    }
+  }
+
+  void addShowDialog(BuildContext context) => showDialog(
     context: context,
-    builder: (context) => SimpleDialog(
+    builder: (context) => AlertDialog(
       title: const Text("Add Todo"),
-      children: [
-        const Text("Placeholder"),
+      content: TextField(
+        controller: _titleController,
+        onSubmitted: (value) {
+          addTodo(value);
+        },
+        decoration: InputDecoration(
+          border: OutlineInputBorder(),
+          labelText: 'Add todo',
+        ),
+      ),
+      actions: [
+        SimpleDialogOption(
+          onPressed: () {
+            addTodo(_titleController.text);
+          },
+          child: const Text('Done'),
+        ),
+        SimpleDialogOption(
+          onPressed: () {
+            _titleController.clear();
+            Navigator.pop(context);
+          },
+          child: const Text('Cancel'),
+        ),
       ],
     ),
   );
@@ -52,50 +96,83 @@ class _TodoViewState extends State<TodoView> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ElevatedButton(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: todos.isNotEmpty
+                      ? ListView.builder(
+                          itemCount: todos.length,
+                          itemBuilder: (context, index) {
+                            return ListTile(
+                              title: Text(
+                                todos[index].title,
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  decoration: todos[index].completed
+                                      ? TextDecoration.lineThrough
+                                      : TextDecoration.none,
+                                ),
+                              ),
+                              leading: Checkbox(
+                                value: todos[index].completed,
+                                onChanged: (value) {
+                                  setState(() {
+                                    todos[index].completed = value!;
+                                  });
+                                },
+                              ),
+                              trailing: IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () {
+                                  setState(() {
+                                    todos.removeAt(index);
+                                  });
+                                },
+                              ),
+                            );
+                          },
+                        )
+                      : const Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.inbox, size: 64, color: Colors.grey),
+                              SizedBox(height: 16),
+                              Text(
+                                "No todos yet",
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                ),
+              ),
+              Column(
+                children: [
+                  FloatingActionButton(
                     onPressed: openSettings,
-                    style: ElevatedButton.styleFrom(
-                      shape: const CircleBorder(),
-                      padding: const EdgeInsets.all(16),
-                    ),
                     child: Icon(Icons.settings),
                   ),
-                ),
-              ]
-            ),
-            Spacer(),
-            Text("Todo List"),
-            Spacer(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ElevatedButton(
-                    onPressed: () => add(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: const CircleBorder(),
-                      padding: const EdgeInsets.all(16),
-                    ),
-                    child: Icon(
-                      Icons.add,
-                      color: Colors.white
-                    ),
+                  Spacer(),
+                  FloatingActionButton(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    onPressed: () => addShowDialog(context),
+                    child: Icon(Icons.add),
                   ),
-                ),
-              ]
-            ),
-          ]
-        )
-      )
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }
