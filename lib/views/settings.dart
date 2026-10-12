@@ -1,16 +1,38 @@
 import 'package:flutter/material.dart';
 
 class SettingsView extends StatefulWidget {
-  const SettingsView({super.key});
+  final bool autoDeleteCompleted;
+  final bool showImportance;
+
+  const SettingsView({super.key, required this.autoDeleteCompleted, required this.showImportance});
 
   @override
   State<SettingsView> createState() => _SettingsViewState();
 }
 
 class _SettingsViewState extends State<SettingsView> {  
-  void closeSettings() => {
-    Navigator.pop(context)
-  };
+  late bool autoDeleteCompleted;
+  late bool showImportance;
+
+  late final double _width = MediaQuery.of(context).size.width;
+
+  void closeSettings() {
+    Navigator.pop(
+      context,
+      {
+        'autoDeleteCompleted': autoDeleteCompleted,
+        'showImportance': showImportance
+      }
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    autoDeleteCompleted = widget.autoDeleteCompleted;
+    showImportance = widget.showImportance;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,8 +50,33 @@ class _SettingsViewState extends State<SettingsView> {
                 child: Icon(Icons.arrow_back),
               ),
             ),
-            Center(
-              child: Text("Settings"),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: _width * 0.1),
+              child: Form(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    SwitchListTile(
+                      title: Text('Auto-delete completed todos'),
+                      value: autoDeleteCompleted,
+                      onChanged: (value) {
+                        setState(() {
+                          autoDeleteCompleted = value;
+                        });
+                      },
+                    ),
+                    // SwitchListTile(
+                    //   title: Text('Show importance'),
+                    //   value: showImportance,
+                    //   onChanged: (value) {
+                    //     setState(() {
+                    //       showImportance = value;
+                    //     });
+                    //   },
+                    // ),
+                  ]
+                )
+              ),
             ),
           ]
         ),

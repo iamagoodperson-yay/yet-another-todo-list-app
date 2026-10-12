@@ -27,41 +27,52 @@ class MainApp extends StatelessWidget {
           secondary: Colors.green,
         ),
       ),
-      home: const TodoView(),
+      home: const TodoView(
+        autoDeleteCompleted: false,
+        showImportance: true,
+      ),
     );
   }
 }
 
 class TodoView extends StatefulWidget {
-  const TodoView({super.key});
+  final bool autoDeleteCompleted;
+  final bool showImportance;
+
+  const TodoView({super.key, required this.autoDeleteCompleted, required this.showImportance});
 
   @override
   State<TodoView> createState() => _TodoViewState();
 }
 
 class _TodoViewState extends State<TodoView> {
+  late bool autoDeleteCompleted;
+  late bool showImportance;
+
   late final double _width = MediaQuery.of(context).size.width;
   late final double _height = MediaQuery.of(context).size.height;
   late final TextEditingController _titleController;
 
-  @override
-  void initState() {
-    super.initState();
-    _titleController = TextEditingController();
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    super.dispose();
-  }
-
   List<Todo> todos = [];
 
-  void openSettings() => Navigator.push(
-    context,
-    MaterialPageRoute(builder: (context) => const SettingsView()),
-  );
+  Future<void> openSettings() async {
+    final result = await Navigator.push<Map<String, bool>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SettingsView(
+          autoDeleteCompleted: autoDeleteCompleted,
+          showImportance: showImportance,
+        ),
+      ),
+    );
+
+    if (result != null && mounted) {
+      setState(() {
+        autoDeleteCompleted = result['autoDeleteCompleted']!;
+        showImportance = result['showImportance']!;
+      });
+    }
+  }
 
   void addTodo(String title) {
     title.trim();
@@ -74,7 +85,24 @@ class _TodoViewState extends State<TodoView> {
     }
   }
 
-  void addShowDialog(BuildContext context) => showDialog(
+  void editTodo(int index, String title) {
+    title.trim();
+    if (title.isNotEmpty) {
+      setState(() {
+        todos[index].title = title;
+      });
+      _titleController.clear();
+      Navigator.pop(context);
+    }
+  }
+
+  void completeTodo(int index) {
+    setState(() {
+      todos[index].completed = true;
+    });
+  }
+
+  void addTodoDialog(BuildContext context) => showDialog(
     context: context,
     builder: (context) => AlertDialog(
       title: const Text("Add Todo"),
@@ -106,6 +134,56 @@ class _TodoViewState extends State<TodoView> {
     ),
   );
 
+  void editTodoDialog(BuildContext context, int index) {
+    _titleController.text = todos[index].title;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Edit Todo"),
+        content: TextField(
+          controller: _titleController,
+          onSubmitted: (value) {
+            editTodo(index, value);
+          },
+          decoration: InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Edit todo',
+          ),
+        ),
+        actions: [
+          SimpleDialogOption(
+            onPressed: () {
+              editTodo(index, _titleController.text);
+            },
+            child: const Text('Done'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              _titleController.clear();
+              Navigator.pop(context);
+            },
+            child: const Text('Cancel'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController();
+
+    autoDeleteCompleted = widget.autoDeleteCompleted;
+    showImportance = widget.showImportance;
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -134,52 +212,67 @@ class _TodoViewState extends State<TodoView> {
                     child: ListView.builder(
                       itemCount: todos.length,
                       itemBuilder: (context, index) {
-                        return ListTile(
-                          title: Text(
-                            todos[index].title,
-                            style: TextStyle(
-                              color: Colors.black,
-                              decoration: todos[index].completed
+                        return AnimatedOpacity(
+                          key: ValueKey(todos[index]),
+                          opacity: autoDeleteCompleted && todos[index].completed ? 0.0 : 1.0,
+                          duration: const Duration(seconds: 3),
+                          onEnd: () {
+                            if (autoDeleteCompleted && todos[index].completed) {
+                              setState(() {
+                                todos.remove(todos[index]);
+                              });
+                            }
+                          },
+
+                          child: ListTile(
+                            title: Text(
+                              todos[index].title,
+                              style: TextStyle(
+                                color: Colors.black,
+                                decoration: todos[index].completed
                                   ? TextDecoration.lineThrough
                                   : TextDecoration.none,
+                              ),
                             ),
-                          ),
-                          leading: Checkbox(
-                            value: todos[index].completed,
-                            onChanged: (value) {
-                              setState(() {
-                                todos[index].completed = value!;
-                              });
-                            },
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              setState(() {
-                                todos.removeAt(index);
-                              });
-                            },
+                            leading: Checkbox(
+                              value: todos[index].completed,
+                              onChanged: (value) {
+                                if (value == null) return;
+                                value ? 
+                                  completeTodo(index) : 
+                                  setState(() {todos[index].completed = value;});
+                              },
+                            ),
+                            trailing: IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () {
+                                setState(() {
+                                  todos.removeAt(index);
+                                });
+                              },
+                            ),
+                            onTap: ()=> editTodoDialog(context, index),
                           ),
                         );
                       },
                     ),
                   ),
             Positioned(
-              top: 16,
-              right: 16,
-              child: FloatingActionButton(
-                onPressed: openSettings,
-                child: Icon(Icons.settings),
-              ),
-            ),
-            Positioned(
               bottom: 16,
               right: 16,
               child: FloatingActionButton(
                 foregroundColor: Colors.white,
                 backgroundColor: Theme.of(context).colorScheme.primary,
-                onPressed: () => addShowDialog(context),
+                onPressed: () => addTodoDialog(context),
                 child: Icon(Icons.add),
+              ),
+            ),
+            Positioned(
+              top: 16,
+              right: 16,
+              child: FloatingActionButton(
+                onPressed: openSettings,
+                child: Icon(Icons.settings),
               ),
             ),
           ],
