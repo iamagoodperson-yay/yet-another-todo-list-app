@@ -8,10 +8,9 @@ class SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<SettingsView> {  
-  void openSettings() => {
+  void closeSettings() => {
     Navigator.pop(context)
   };
-
 
   @override
   Widget build(BuildContext context) {
@@ -19,21 +18,15 @@ class _SettingsViewState extends State<SettingsView> {
       body: SafeArea(
         child: Stack(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: ElevatedButton(
-                    onPressed: openSettings,
-                    style: ElevatedButton.styleFrom(
-                      shape: const CircleBorder(),
-                      padding: const EdgeInsets.all(16),
-                    ),
-                    child: Icon(Icons.arrow_back),
-                  ),
-                ),
-              ]
+            Positioned(
+              top: 16,
+              left: 16,
+              child: FloatingActionButton(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.grey,
+                onPressed: closeSettings,
+                child: Icon(Icons.arrow_back),
+              ),
             ),
             Center(
               child: Text("Settings"),
