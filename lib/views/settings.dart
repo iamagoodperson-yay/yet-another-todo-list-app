@@ -65,15 +65,15 @@ class _SettingsViewState extends State<SettingsView> {
                         });
                       },
                     ),
-                    // SwitchListTile(
-                    //   title: Text('Show importance'),
-                    //   value: showImportance,
-                    //   onChanged: (value) {
-                    //     setState(() {
-                    //       showImportance = value;
-                    //     });
-                    //   },
-                    // ),
+                    SwitchListTile(
+                      title: Text('Show importance'),
+                      value: showImportance,
+                      onChanged: (value) {
+                        setState(() {
+                          showImportance = value;
+                        });
+                      },
+                    ),
                   ]
                 )
               ),

@@ -8,8 +8,9 @@ void main() {
 class Todo {
   String title;
   bool completed;
+  int importance; // 0 lowest, 4 highest
 
-  Todo({required this.title, this.completed = false});
+  Todo({required this.title, this.completed = false, this.importance = 1});
 }
 
 class MainApp extends StatelessWidget {
@@ -28,7 +29,7 @@ class MainApp extends StatelessWidget {
         ),
       ),
       home: const TodoView(
-        autoDeleteCompleted: false,
+        autoDeleteCompleted: true,
         showImportance: true,
       ),
     );
@@ -48,12 +49,22 @@ class TodoView extends StatefulWidget {
 class _TodoViewState extends State<TodoView> {
   late bool autoDeleteCompleted;
   late bool showImportance;
+  
+  late final TextEditingController _titleController; // to be deprecated
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   late final double _width = MediaQuery.of(context).size.width;
   late final double _height = MediaQuery.of(context).size.height;
-  late final TextEditingController _titleController;
 
+  int _tempImportance = 0;
   List<Todo> todos = [];
+  Map<String, MaterialColor> importanceOptions = {
+    '0' : Colors.blue,
+    '1' : Colors.green,
+    '2' : Colors.yellow,
+    '3' : Colors.orange,
+    '4' : Colors.red,
+  };
 
   Future<void> openSettings() async {
     final result = await Navigator.push<Map<String, bool>>(
@@ -74,22 +85,20 @@ class _TodoViewState extends State<TodoView> {
     }
   }
 
-  void addTodo(String title) {
-    title.trim();
-    if (title.isNotEmpty) {
-      setState(() {
-        todos.add(Todo(title: title));
-      });
-      _titleController.clear();
-      Navigator.pop(context);
-    }
+  void addTodo(String title, int importance) {
+    setState(() {
+      todos.add(Todo(title: title, importance: importance));
+    });
+    _titleController.clear();
+    Navigator.pop(context);
   }
 
-  void editTodo(int index, String title) {
+  void editTodo(int index, String title, int importance) {
     title.trim();
     if (title.isNotEmpty) {
       setState(() {
         todos[index].title = title;
+        todos[index].importance = importance;
       });
       _titleController.clear();
       Navigator.pop(context);
@@ -104,56 +113,79 @@ class _TodoViewState extends State<TodoView> {
 
   void addTodoDialog(BuildContext context) => showDialog(
     context: context,
-    builder: (context) => AlertDialog(
-      title: const Text("Add Todo"),
-      content: TextField(
-        controller: _titleController,
-        onSubmitted: (value) {
-          addTodo(value);
-        },
-        decoration: InputDecoration(
-          border: OutlineInputBorder(),
-          labelText: 'Add todo',
-        ),
-      ),
-      actions: [
-        SimpleDialogOption(
-          onPressed: () {
-            addTodo(_titleController.text);
-          },
-          child: const Text('Done'),
-        ),
-        SimpleDialogOption(
-          onPressed: () {
-            _titleController.clear();
-            Navigator.pop(context);
-          },
-          child: const Text('Cancel'),
-        ),
-      ],
-    ),
-  );
-
-  void editTodoDialog(BuildContext context, int index) {
-    _titleController.text = todos[index].title;
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Edit Todo"),
-        content: TextField(
-          controller: _titleController,
-          onSubmitted: (value) {
-            editTodo(index, value);
-          },
-          decoration: InputDecoration(
-            border: OutlineInputBorder(),
-            labelText: 'Edit todo',
+    builder: (context) => StatefulBuilder(
+      builder: (context, setState) => AlertDialog(
+        title: const Text("Add Todo"),
+        content: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: 'todo title',
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return 'Please enter a title';
+                  }
+                  return null;
+                },
+              ),
+              if (showImportance) Row(
+                children: [
+                  const Text('Importance:'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        icon: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              Icons.circle,
+                              size: 32,
+                              color: importanceOptions[index.toString()],
+                            ),
+                          ],
+                        ),
+                        selectedIcon: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              Icons.circle,
+                              size: 32,
+                              color: importanceOptions[index.toString()],
+                            ),
+                            Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                          ],
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _tempImportance = index;
+                          });
+                        },
+                        isSelected: _tempImportance == index,
+                      );
+                    }),
+                  )
+                ]
+              ),
+            ],
           ),
         ),
         actions: [
           SimpleDialogOption(
             onPressed: () {
-              editTodo(index, _titleController.text);
+              if (_formKey.currentState!.validate()) {
+                addTodo(_titleController.text, _tempImportance);
+              }
             },
             child: const Text('Done'),
           ),
@@ -161,10 +193,106 @@ class _TodoViewState extends State<TodoView> {
             onPressed: () {
               _titleController.clear();
               Navigator.pop(context);
+              _tempImportance = 0;
             },
             child: const Text('Cancel'),
           ),
         ],
+      ),
+    ),
+  );
+
+  void editTodoDialog(BuildContext context, int index) {
+    _titleController.text = todos[index].title;
+    _tempImportance = todos[index].importance;
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text("Edit Todo"),
+          content: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'todo title',
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Please enter a title';
+                    }
+                    return null;
+                  },
+                ),
+                if (showImportance) Row(
+                  children: [
+                    const Text('Importance:'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(5, (index) {
+                        return IconButton(
+                          icon: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 32,
+                                color: importanceOptions[index.toString()],
+                              ),
+                            ],
+                          ),
+                          selectedIcon: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 32,
+                                color: importanceOptions[index.toString()],
+                              ),
+                              Icon(
+                                Icons.check,
+                                size: 16,
+                                color: Colors.white,
+                              ),
+                            ],
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _tempImportance = index;
+                            });
+                          },
+                          isSelected: _tempImportance == index,
+                        );
+                      }),
+                    )
+                  ]
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            SimpleDialogOption(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  editTodo(index, _titleController.text, _tempImportance);
+                }
+              },
+              child: const Text('Done'),
+            ),
+            SimpleDialogOption(
+              onPressed: () {
+                _titleController.clear();
+                Navigator.pop(context);
+                _tempImportance = 0;
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -223,7 +351,6 @@ class _TodoViewState extends State<TodoView> {
                               });
                             }
                           },
-
                           child: ListTile(
                             title: Text(
                               todos[index].title,
@@ -234,14 +361,23 @@ class _TodoViewState extends State<TodoView> {
                                   : TextDecoration.none,
                               ),
                             ),
-                            leading: Checkbox(
-                              value: todos[index].completed,
-                              onChanged: (value) {
-                                if (value == null) return;
-                                value ? 
-                                  completeTodo(index) : 
-                                  setState(() {todos[index].completed = value;});
-                              },
+                            leading: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Checkbox(
+                                  value: todos[index].completed,
+                                  onChanged: (value) {
+                                    if (value == null) return;
+                                    value ? 
+                                    completeTodo(index) : 
+                                    setState(() {todos[index].completed = value;});
+                                  },
+                                ),
+                                if (showImportance) Icon(
+                                  Icons.circle,
+                                  color: importanceOptions[todos[index].importance.toString()],
+                                ),
+                              ]
                             ),
                             trailing: IconButton(
                               icon: Icon(Icons.delete),
