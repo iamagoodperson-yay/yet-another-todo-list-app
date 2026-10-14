@@ -129,7 +129,7 @@ class _TodoViewState extends State<TodoView> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter a title';
+                    return 'Please enter some text';
                   }
                   return null;
                 },
@@ -223,7 +223,7 @@ class _TodoViewState extends State<TodoView> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter a title';
+                      return 'Please enter some text';
                     }
                     return null;
                   },
