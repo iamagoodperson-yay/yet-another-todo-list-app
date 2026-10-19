@@ -107,6 +107,18 @@ class _TodoViewState extends State<TodoView> {
     }
   }
 
+  void deleteTodo(Todo todo) {
+    setState(() {
+      todos.remove(todo);
+    });
+  }
+
+  void setTodoCompleted(Todo todo, bool completed) {
+    setState(() {
+      todo.completed = completed;
+    });
+  }
+
   void addTodoDialog(BuildContext context) => showDialog(
     context: context,
     builder: (context) => StatefulBuilder(
@@ -343,8 +355,10 @@ class _TodoViewState extends State<TodoView> {
                                   .toList(),
                               autoDeleteCompleted: autoDeleteCompleted,
                               showImportance: showImportance,
-                              editTodoDialog: (context, index) =>
-                                  editTodoDialog(context, index),
+                              editTodoDialog: (context, todo) =>
+                                  editTodoDialog(context, todos.indexOf(todo)),
+                              deleteTodo: deleteTodo,
+                              setTodoCompleted: setTodoCompleted,
                             ),
                             leading: Stack(
                               alignment: Alignment.center,
@@ -366,8 +380,10 @@ class _TodoViewState extends State<TodoView> {
                         todos: todos,
                         autoDeleteCompleted: autoDeleteCompleted,
                         showImportance: showImportance,
-                        editTodoDialog: (context, index) =>
-                            editTodoDialog(context, index),
+                        editTodoDialog: (context, todo) =>
+                            editTodoDialog(context, todos.indexOf(todo)),
+                        deleteTodo: deleteTodo,
+                        setTodoCompleted: setTodoCompleted,
                       ),
               ),
             Positioned(
@@ -395,11 +411,13 @@ class _TodoViewState extends State<TodoView> {
   }
 }
 
-class TodoListView extends StatefulWidget {
+class TodoListView extends StatelessWidget {
   final List<Todo> todos;
   final bool autoDeleteCompleted;
   final bool showImportance;
-  final void Function(BuildContext, int) editTodoDialog;
+  final void Function(BuildContext, Todo) editTodoDialog;
+  final void Function(Todo) deleteTodo;
+  final void Function(Todo, bool) setTodoCompleted;
 
   const TodoListView({
     super.key,
@@ -407,27 +425,9 @@ class TodoListView extends StatefulWidget {
     required this.autoDeleteCompleted,
     required this.showImportance,
     required this.editTodoDialog,
+    required this.deleteTodo,
+    required this.setTodoCompleted,
   });
-
-  @override
-  State<TodoListView> createState() => _TodoListViewState();
-}
-
-class _TodoListViewState extends State<TodoListView> {
-  late List<Todo> todos;
-  late bool autoDeleteCompleted;
-  late bool showImportance;
-  late void Function(BuildContext, int) editTodoDialog;
-
-  @override
-  void initState() {
-    super.initState();
-
-    todos = widget.todos;
-    autoDeleteCompleted = widget.autoDeleteCompleted;
-    showImportance = widget.showImportance;
-    editTodoDialog = widget.editTodoDialog;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -436,23 +436,22 @@ class _TodoListViewState extends State<TodoListView> {
       physics: const NeverScrollableScrollPhysics(),
       itemCount: todos.length,
       itemBuilder: (context, index) {
+        final todo = todos[index];
         return AnimatedOpacity(
-          key: ValueKey(todos[index]),
-          opacity: autoDeleteCompleted && todos[index].completed ? 0.0 : 1.0,
+          key: ValueKey(todo),
+          opacity: autoDeleteCompleted && todo.completed ? 0.0 : 1.0,
           duration: const Duration(seconds: 3),
           onEnd: () {
-            if (autoDeleteCompleted && todos[index].completed) {
-              setState(() {
-                todos.remove(todos[index]);
-              });
+            if (autoDeleteCompleted && todo.completed) {
+              deleteTodo(todo);
             }
           },
           child: ListTile(
             title: Text(
-              todos[index].title,
+              todo.title,
               style: TextStyle(
                 color: Colors.black,
-                decoration: todos[index].completed
+                decoration: todo.completed
                     ? TextDecoration.lineThrough
                     : TextDecoration.none,
               ),
@@ -461,12 +460,10 @@ class _TodoListViewState extends State<TodoListView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Checkbox(
-                  value: todos[index].completed,
+                  value: todo.completed,
                   onChanged: (value) {
                     if (value == null) return;
-                    setState(() {
-                      todos[index].completed = value;
-                    });
+                    setTodoCompleted(todo, value);
                   },
                 ),
               ],
@@ -474,12 +471,10 @@ class _TodoListViewState extends State<TodoListView> {
             trailing: IconButton(
               icon: Icon(Icons.delete),
               onPressed: () {
-                setState(() {
-                  todos.removeAt(index);
-                });
+                deleteTodo(todo);
               },
             ),
-            onTap: () => editTodoDialog(context, index),
+            onTap: () => editTodoDialog(context, todo),
           ),
         );
       },
