@@ -5,6 +5,14 @@ void main() {
   runApp(const MainApp());
 }
 
+Map<String, MaterialColor> importanceOptions = {
+  '0': Colors.blue,
+  '1': Colors.green,
+  '2': Colors.yellow,
+  '3': Colors.orange,
+  '4': Colors.red,
+};
+
 class Todo {
   String title;
   bool completed;
@@ -28,10 +36,7 @@ class MainApp extends StatelessWidget {
           secondary: Colors.green,
         ),
       ),
-      home: const TodoView(
-        autoDeleteCompleted: true,
-        showImportance: true,
-      ),
+      home: const TodoView(autoDeleteCompleted: true, showImportance: true),
     );
   }
 }
@@ -40,7 +45,11 @@ class TodoView extends StatefulWidget {
   final bool autoDeleteCompleted;
   final bool showImportance;
 
-  const TodoView({super.key, required this.autoDeleteCompleted, required this.showImportance});
+  const TodoView({
+    super.key,
+    required this.autoDeleteCompleted,
+    required this.showImportance,
+  });
 
   @override
   State<TodoView> createState() => _TodoViewState();
@@ -49,7 +58,7 @@ class TodoView extends StatefulWidget {
 class _TodoViewState extends State<TodoView> {
   late bool autoDeleteCompleted;
   late bool showImportance;
-  
+
   late final TextEditingController _titleController; // to be deprecated
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
@@ -58,13 +67,6 @@ class _TodoViewState extends State<TodoView> {
 
   int _tempImportance = 0;
   List<Todo> todos = [];
-  Map<String, MaterialColor> importanceOptions = {
-    '0' : Colors.blue,
-    '1' : Colors.green,
-    '2' : Colors.yellow,
-    '3' : Colors.orange,
-    '4' : Colors.red,
-  };
 
   Future<void> openSettings() async {
     final result = await Navigator.push<Map<String, bool>>(
@@ -105,12 +107,6 @@ class _TodoViewState extends State<TodoView> {
     }
   }
 
-  void completeTodo(int index) {
-    setState(() {
-      todos[index].completed = true;
-    });
-  }
-
   void addTodoDialog(BuildContext context) => showDialog(
     context: context,
     builder: (context) => StatefulBuilder(
@@ -134,49 +130,46 @@ class _TodoViewState extends State<TodoView> {
                   return null;
                 },
               ),
-              if (showImportance) Row(
-                children: [
-                  const Text('Importance:'),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: List.generate(5, (index) {
-                      return IconButton(
-                        icon: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Icon(
-                              Icons.circle,
-                              size: 32,
-                              color: importanceOptions[index.toString()],
-                            ),
-                          ],
-                        ),
-                        selectedIcon: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            Icon(
-                              Icons.circle,
-                              size: 32,
-                              color: importanceOptions[index.toString()],
-                            ),
-                            Icon(
-                              Icons.check,
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ],
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _tempImportance = index;
-                          });
-                        },
-                        isSelected: _tempImportance == index,
-                      );
-                    }),
-                  )
-                ]
-              ),
+              if (showImportance)
+                Row(
+                  children: [
+                    const Text('Importance:'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(5, (index) {
+                        return IconButton(
+                          icon: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 32,
+                                color: importanceOptions[index.toString()],
+                              ),
+                            ],
+                          ),
+                          selectedIcon: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 32,
+                                color: importanceOptions[index.toString()],
+                              ),
+                              Icon(Icons.check, size: 16, color: Colors.white),
+                            ],
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _tempImportance = index;
+                            });
+                          },
+                          isSelected: _tempImportance == index,
+                        );
+                      }),
+                    ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -228,49 +221,50 @@ class _TodoViewState extends State<TodoView> {
                     return null;
                   },
                 ),
-                if (showImportance) Row(
-                  children: [
-                    const Text('Importance:'),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: List.generate(5, (index) {
-                        return IconButton(
-                          icon: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Icon(
-                                Icons.circle,
-                                size: 32,
-                                color: importanceOptions[index.toString()],
-                              ),
-                            ],
-                          ),
-                          selectedIcon: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Icon(
-                                Icons.circle,
-                                size: 32,
-                                color: importanceOptions[index.toString()],
-                              ),
-                              Icon(
-                                Icons.check,
-                                size: 16,
-                                color: Colors.white,
-                              ),
-                            ],
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _tempImportance = index;
-                            });
-                          },
-                          isSelected: _tempImportance == index,
-                        );
-                      }),
-                    )
-                  ]
-                ),
+                if (showImportance)
+                  Row(
+                    children: [
+                      const Text('Importance:'),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: List.generate(5, (index) {
+                          return IconButton(
+                            icon: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Icon(
+                                  Icons.circle,
+                                  size: 32,
+                                  color: importanceOptions[index.toString()],
+                                ),
+                              ],
+                            ),
+                            selectedIcon: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Icon(
+                                  Icons.circle,
+                                  size: 32,
+                                  color: importanceOptions[index.toString()],
+                                ),
+                                Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ],
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _tempImportance = index;
+                              });
+                            },
+                            isSelected: _tempImportance == index,
+                          );
+                        }),
+                      ),
+                    ],
+                  ),
               ],
             ),
           ),
@@ -318,81 +312,64 @@ class _TodoViewState extends State<TodoView> {
       body: SafeArea(
         child: Stack(
           children: [
-            todos.isEmpty
-                ? const Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.inbox, size: 64, color: Colors.grey),
-                        SizedBox(height: 16),
-                        Text(
-                          "No todos yet",
-                          style: TextStyle(fontSize: 24, color: Colors.grey),
-                        ),
-                      ],
+            if (todos.isEmpty)
+              const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.inbox, size: 64, color: Colors.grey),
+                    SizedBox(height: 16),
+                    Text(
+                      "No todos yet",
+                      style: TextStyle(fontSize: 24, color: Colors.grey),
                     ),
-                  )
-                : Padding(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: _width * 0.1,
-                      vertical: _height * 0.075,
-                    ).add(EdgeInsets.symmetric(vertical: 16)),
-                    child: ListView.builder(
-                      itemCount: todos.length,
-                      itemBuilder: (context, index) {
-                        return AnimatedOpacity(
-                          key: ValueKey(todos[index]),
-                          opacity: autoDeleteCompleted && todos[index].completed ? 0.0 : 1.0,
-                          duration: const Duration(seconds: 3),
-                          onEnd: () {
-                            if (autoDeleteCompleted && todos[index].completed) {
-                              setState(() {
-                                todos.remove(todos[index]);
-                              });
-                            }
-                          },
-                          child: ListTile(
-                            title: Text(
-                              todos[index].title,
-                              style: TextStyle(
-                                color: Colors.black,
-                                decoration: todos[index].completed
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                              ),
+                  ],
+                ),
+              )
+            else
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: _width * 0.1,
+                  vertical: _height * 0.075,
+                ).add(EdgeInsets.symmetric(vertical: 16)),
+                child: showImportance
+                    ? ListView.builder(
+                        itemCount: importanceOptions.length,
+                        itemBuilder: (context, index) {
+                          return ListTile(
+                            title: TodoListView(
+                              todos: todos
+                                  .where((todo) => todo.importance == index)
+                                  .toList(),
+                              autoDeleteCompleted: autoDeleteCompleted,
+                              showImportance: showImportance,
+                              editTodoDialog: (context, index) =>
+                                  editTodoDialog(context, index),
                             ),
-                            leading: Row(
-                              mainAxisSize: MainAxisSize.min,
+                            leading: Stack(
+                              alignment: Alignment.center,
                               children: [
-                                Checkbox(
-                                  value: todos[index].completed,
-                                  onChanged: (value) {
-                                    if (value == null) return;
-                                    value ? 
-                                    completeTodo(index) : 
-                                    setState(() {todos[index].completed = value;});
-                                  },
+                                Container(
+                                  width: 2,
+                                  color: importanceOptions[index.toString()],
                                 ),
-                                if (showImportance) Icon(
+                                Icon(
                                   Icons.circle,
-                                  color: importanceOptions[todos[index].importance.toString()],
+                                  color: importanceOptions[index.toString()],
                                 ),
-                              ]
+                              ],
                             ),
-                            trailing: IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () {
-                                setState(() {
-                                  todos.removeAt(index);
-                                });
-                              },
-                            ),
-                            onTap: ()=> editTodoDialog(context, index),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                          );
+                        },
+                      )
+                    : TodoListView(
+                        todos: todos,
+                        autoDeleteCompleted: autoDeleteCompleted,
+                        showImportance: showImportance,
+                        editTodoDialog: (context, index) =>
+                            editTodoDialog(context, index),
+                      ),
+              ),
             Positioned(
               bottom: 16,
               right: 16,
@@ -414,6 +391,98 @@ class _TodoViewState extends State<TodoView> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class TodoListView extends StatefulWidget {
+  final List<Todo> todos;
+  final bool autoDeleteCompleted;
+  final bool showImportance;
+  final void Function(BuildContext, int) editTodoDialog;
+
+  const TodoListView({
+    super.key,
+    required this.todos,
+    required this.autoDeleteCompleted,
+    required this.showImportance,
+    required this.editTodoDialog,
+  });
+
+  @override
+  State<TodoListView> createState() => _TodoListViewState();
+}
+
+class _TodoListViewState extends State<TodoListView> {
+  late List<Todo> todos;
+  late bool autoDeleteCompleted;
+  late bool showImportance;
+  late void Function(BuildContext, int) editTodoDialog;
+
+  @override
+  void initState() {
+    super.initState();
+
+    todos = widget.todos;
+    autoDeleteCompleted = widget.autoDeleteCompleted;
+    showImportance = widget.showImportance;
+    editTodoDialog = widget.editTodoDialog;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: todos.length,
+      itemBuilder: (context, index) {
+        return AnimatedOpacity(
+          key: ValueKey(todos[index]),
+          opacity: autoDeleteCompleted && todos[index].completed ? 0.0 : 1.0,
+          duration: const Duration(seconds: 3),
+          onEnd: () {
+            if (autoDeleteCompleted && todos[index].completed) {
+              setState(() {
+                todos.remove(todos[index]);
+              });
+            }
+          },
+          child: ListTile(
+            title: Text(
+              todos[index].title,
+              style: TextStyle(
+                color: Colors.black,
+                decoration: todos[index].completed
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+              ),
+            ),
+            leading: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Checkbox(
+                  value: todos[index].completed,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      todos[index].completed = value;
+                    });
+                  },
+                ),
+              ],
+            ),
+            trailing: IconButton(
+              icon: Icon(Icons.delete),
+              onPressed: () {
+                setState(() {
+                  todos.removeAt(index);
+                });
+              },
+            ),
+            onTap: () => editTodoDialog(context, index),
+          ),
+        );
+      },
     );
   }
 }
