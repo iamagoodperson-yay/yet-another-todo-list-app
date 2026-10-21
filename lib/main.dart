@@ -6,11 +6,11 @@ void main() {
 }
 
 Map<int, MaterialColor> importanceOptions = {
-  4 : Colors.red,
-  3: Colors.orange,
+  0 : Colors.red,
+  1: Colors.orange,
   2: Colors.yellow,
-  1: Colors.green,
-  0: Colors.blue,
+  3: Colors.green,
+  4: Colors.blue,
 };
 
 class Todo {
@@ -65,7 +65,7 @@ class _TodoViewState extends State<TodoView> {
   late final double _width = MediaQuery.of(context).size.width;
   late final double _height = MediaQuery.of(context).size.height;
 
-  int _tempImportance = 0;
+  int _tempImportance = 4;
   List<Todo> todos = [];
 
   Future<void> openSettings() async {
@@ -320,14 +320,6 @@ class _TodoViewState extends State<TodoView> {
 
   @override
   Widget build(BuildContext context) {
-    final Map<int, MaterialColor> currentImportance = {
-      for (final key in importanceOptions.keys)
-        for (final importance in todos.map((todo) => todo.importance))
-          if (importance == key)
-            key : importanceOptions[key]!
-    };
-      
-
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -354,8 +346,11 @@ class _TodoViewState extends State<TodoView> {
                 ).add(EdgeInsets.symmetric(vertical: 16)),
                 child: showImportance
                   ? ListView.builder(
-                    itemCount: currentImportance.length,
+                    itemCount: importanceOptions.length,
                     itemBuilder: (context, index) {
+                      if (todos.where((todo) => todo.importance == index).isEmpty) {
+                        return const SizedBox.shrink();
+                      }
                       return Row(
                         children: [
                           Stack(
@@ -363,12 +358,12 @@ class _TodoViewState extends State<TodoView> {
                             children: [
                               Container(
                                 width: 2,
-                                height: 40.0 * todos.where((todo) => todo.importance == index).length,
-                                color: currentImportance[index],
+                                height: (48.0 * todos.where((todo) => todo.importance == index).length) - 8.0,
+                                color: importanceOptions[index],
                               ),
                               Icon(
                                 Icons.circle,
-                                color: currentImportance[index],
+                                color: importanceOptions[index],
                               ),
                             ],
                           ),
@@ -417,7 +412,6 @@ class _TodoViewState extends State<TodoView> {
                 child: Icon(Icons.settings),
               ),
             ),
-            Text(currentImportance.toString()),
           ],
         ),
       ),
