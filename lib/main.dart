@@ -5,12 +5,12 @@ void main() {
   runApp(const MainApp());
 }
 
-Map<String, MaterialColor> importanceOptions = {
-  '0': Colors.blue,
-  '1': Colors.green,
-  '2': Colors.yellow,
-  '3': Colors.orange,
-  '4': Colors.red,
+Map<int, MaterialColor> importanceOptions = {
+  4 : Colors.red,
+  3: Colors.orange,
+  2: Colors.yellow,
+  1: Colors.green,
+  0: Colors.blue,
 };
 
 class Todo {
@@ -59,7 +59,7 @@ class _TodoViewState extends State<TodoView> {
   late bool autoDeleteCompleted;
   late bool showImportance;
 
-  late final TextEditingController _titleController; // to be deprecated
+  late final TextEditingController _titleController;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   late final double _width = MediaQuery.of(context).size.width;
@@ -156,7 +156,7 @@ class _TodoViewState extends State<TodoView> {
                               Icon(
                                 Icons.circle,
                                 size: 32,
-                                color: importanceOptions[index.toString()],
+                                color: importanceOptions[index],
                               ),
                             ],
                           ),
@@ -166,7 +166,7 @@ class _TodoViewState extends State<TodoView> {
                               Icon(
                                 Icons.circle,
                                 size: 32,
-                                color: importanceOptions[index.toString()],
+                                color: importanceOptions[index],
                               ),
                               Icon(Icons.check, size: 16, color: Colors.white),
                             ],
@@ -247,7 +247,7 @@ class _TodoViewState extends State<TodoView> {
                                 Icon(
                                   Icons.circle,
                                   size: 32,
-                                  color: importanceOptions[index.toString()],
+                                  color: importanceOptions[index],
                                 ),
                               ],
                             ),
@@ -257,7 +257,7 @@ class _TodoViewState extends State<TodoView> {
                                 Icon(
                                   Icons.circle,
                                   size: 32,
-                                  color: importanceOptions[index.toString()],
+                                  color: importanceOptions[index],
                                 ),
                                 Icon(
                                   Icons.check,
@@ -320,6 +320,14 @@ class _TodoViewState extends State<TodoView> {
 
   @override
   Widget build(BuildContext context) {
+    final Map<int, MaterialColor> currentImportance = {
+      for (final key in importanceOptions.keys)
+        for (final importance in todos.map((todo) => todo.importance))
+          if (importance == key)
+            key : importanceOptions[key]!
+    };
+      
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
@@ -345,46 +353,51 @@ class _TodoViewState extends State<TodoView> {
                   vertical: _height * 0.075,
                 ).add(EdgeInsets.symmetric(vertical: 16)),
                 child: showImportance
-                    ? ListView.builder(
-                        itemCount: importanceOptions.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                            title: TodoListView(
+                  ? ListView.builder(
+                    itemCount: currentImportance.length,
+                    itemBuilder: (context, index) {
+                      return Row(
+                        children: [
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                width: 2,
+                                height: 40.0 * todos.where((todo) => todo.importance == index).length,
+                                color: currentImportance[index],
+                              ),
+                              Icon(
+                                Icons.circle,
+                                color: currentImportance[index],
+                              ),
+                            ],
+                          ),
+                          Expanded(
+                            child: TodoListView(
                               todos: todos
-                                  .where((todo) => todo.importance == index)
-                                  .toList(),
+                                .where((todo) => todo.importance == index)
+                                .toList(),
                               autoDeleteCompleted: autoDeleteCompleted,
                               showImportance: showImportance,
                               editTodoDialog: (context, todo) =>
-                                  editTodoDialog(context, todos.indexOf(todo)),
+                                editTodoDialog(context, todos.indexOf(todo)),
                               deleteTodo: deleteTodo,
                               setTodoCompleted: setTodoCompleted,
                             ),
-                            leading: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  width: 2,
-                                  color: importanceOptions[index.toString()],
-                                ),
-                                Icon(
-                                  Icons.circle,
-                                  color: importanceOptions[index.toString()],
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      )
-                    : TodoListView(
-                        todos: todos,
-                        autoDeleteCompleted: autoDeleteCompleted,
-                        showImportance: showImportance,
-                        editTodoDialog: (context, todo) =>
-                            editTodoDialog(context, todos.indexOf(todo)),
-                        deleteTodo: deleteTodo,
-                        setTodoCompleted: setTodoCompleted,
-                      ),
+                          ),
+                        ],
+                      );
+                    },
+                  )
+                : TodoListView(
+                  todos: todos,
+                  autoDeleteCompleted: autoDeleteCompleted,
+                  showImportance: showImportance,
+                  editTodoDialog: (context, todo) =>
+                    editTodoDialog(context, todos.indexOf(todo)),
+                  deleteTodo: deleteTodo,
+                  setTodoCompleted: setTodoCompleted,
+                ),
               ),
             Positioned(
               bottom: 16,
@@ -404,6 +417,7 @@ class _TodoViewState extends State<TodoView> {
                 child: Icon(Icons.settings),
               ),
             ),
+            Text(currentImportance.toString()),
           ],
         ),
       ),
