@@ -1,17 +1,11 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:yet_another_todo_list_app/views/settings.dart';
 
 void main() {
   runApp(const MainApp());
 }
-
-Map<int, MaterialColor> importanceOptions = {
-  0 : Colors.red,
-  1: Colors.orange,
-  2: Colors.yellow,
-  3: Colors.green,
-  4: Colors.blue,
-};
 
 class Todo {
   String title;
@@ -36,7 +30,7 @@ class MainApp extends StatelessWidget {
           secondary: Colors.green,
         ),
       ),
-      home: const TodoView(autoDeleteCompleted: true, showImportance: true),
+      home: const TodoView(autoDeleteCompleted: true, showImportance: true, uwuifier: true),
     );
   }
 }
@@ -44,11 +38,13 @@ class MainApp extends StatelessWidget {
 class TodoView extends StatefulWidget {
   final bool autoDeleteCompleted;
   final bool showImportance;
+  final bool uwuifier;
 
   const TodoView({
     super.key,
     required this.autoDeleteCompleted,
     required this.showImportance,
+    required this.uwuifier,
   });
 
   @override
@@ -58,6 +54,7 @@ class TodoView extends StatefulWidget {
 class _TodoViewState extends State<TodoView> {
   late bool autoDeleteCompleted;
   late bool showImportance;
+  late bool uwuifier;
 
   late final TextEditingController _titleController;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -66,6 +63,7 @@ class _TodoViewState extends State<TodoView> {
   late final double _height = MediaQuery.of(context).size.height;
 
   int _tempImportance = 4;
+  late Map<int, MaterialColor> importanceOptions;
   List<Todo> todos = [];
 
   Future<void> openSettings() async {
@@ -75,6 +73,7 @@ class _TodoViewState extends State<TodoView> {
         builder: (context) => SettingsView(
           autoDeleteCompleted: autoDeleteCompleted,
           showImportance: showImportance,
+          uwuifier: uwuifier,
         ),
       ),
     );
@@ -83,11 +82,31 @@ class _TodoViewState extends State<TodoView> {
       setState(() {
         autoDeleteCompleted = result['autoDeleteCompleted']!;
         showImportance = result['showImportance']!;
+        uwuifier = result['uwuifier']!;
       });
     }
   }
 
   void addTodo(String title, int importance) {
+    if (uwuifier) {
+      var endings = [
+        'uwu',
+        'owo',
+        '>w<',
+        '( =ω=)..nyaa',
+        '(=ↀωↀ=)✧',
+        '(* ^ ω ^)',
+        ' (U ᵕ U❁)',
+        '(⁄ ⁄O⁄ω⁄O⁄ ⁄)'
+      ];
+      for(var char in ['r', 'l']) {
+        title = title.replaceAll(char, 'w');
+      }
+      for(var char in ['R', 'L']) {
+        title = title.replaceAll(char, 'W');
+      }
+      title = '$title ${endings[Random().nextInt(endings.length)]}';
+    }
     setState(() {
       todos.add(Todo(title: title, importance: importance));
     });
@@ -123,7 +142,7 @@ class _TodoViewState extends State<TodoView> {
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setState) => AlertDialog(
-        title: const Text("Add Todo"),
+        title: Text(uwuifier ? "Add Todo >w<" : "Add Todo"),
         content: Form(
           key: _formKey,
           child: Column(
@@ -137,7 +156,7 @@ class _TodoViewState extends State<TodoView> {
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
-                    return 'Please enter some text';
+                    return 'Pwease entew some text';
                   }
                   return null;
                 },
@@ -145,7 +164,7 @@ class _TodoViewState extends State<TodoView> {
               if (showImportance)
                 Row(
                   children: [
-                    const Text('Importance:'),
+                    Text(uwuifier ? 'Impowtance owo:' : 'Importance:'),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: List.generate(5, (index) {
@@ -192,7 +211,7 @@ class _TodoViewState extends State<TodoView> {
                 addTodo(_titleController.text, _tempImportance);
               }
             },
-            child: const Text('Done'),
+            child: Text(uwuifier ? 'Done (✿^‿^)' : 'Done'),
           ),
           SimpleDialogOption(
             onPressed: () {
@@ -200,7 +219,7 @@ class _TodoViewState extends State<TodoView> {
               Navigator.pop(context);
               _tempImportance = 0;
             },
-            child: const Text('Cancel'),
+            child: Text(uwuifier ? 'Cancew >.<' : 'Cancel'),
           ),
         ],
       ),
@@ -310,6 +329,7 @@ class _TodoViewState extends State<TodoView> {
 
     autoDeleteCompleted = widget.autoDeleteCompleted;
     showImportance = widget.showImportance;
+    uwuifier = widget.uwuifier;
   }
 
   @override
@@ -320,19 +340,37 @@ class _TodoViewState extends State<TodoView> {
 
   @override
   Widget build(BuildContext context) {
+    if (uwuifier) {
+      importanceOptions = {
+        0 : Colors.pink,
+        1: Colors.purple,
+        2: Colors.deepPurple,
+        3: Colors.indigo,
+        4: Colors.blue,
+      };
+    } else {
+      importanceOptions = {
+        0 : Colors.red,
+        1: Colors.orange,
+        2: Colors.yellow,
+        3: Colors.green,
+        4: Colors.blue,
+      };
+    }
+
     return Scaffold(
       body: SafeArea(
         child: Stack(
           children: [
             if (todos.isEmpty)
-              const Center(
+              Center(
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.inbox, size: 64, color: Colors.grey),
                     SizedBox(height: 16),
                     Text(
-                      "No todos yet",
+                      uwuifier ? "No todos yet (｡>﹏<｡)" : "No todos yet",
                       style: TextStyle(fontSize: 24, color: Colors.grey),
                     ),
                   ],

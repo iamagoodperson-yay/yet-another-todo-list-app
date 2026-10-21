@@ -3,8 +3,14 @@ import 'package:flutter/material.dart';
 class SettingsView extends StatefulWidget {
   final bool autoDeleteCompleted;
   final bool showImportance;
+  final bool uwuifier;
 
-  const SettingsView({super.key, required this.autoDeleteCompleted, required this.showImportance});
+  const SettingsView({
+    super.key, 
+    required this.autoDeleteCompleted, 
+    required this.showImportance, 
+    required this.uwuifier
+  });
 
   @override
   State<SettingsView> createState() => _SettingsViewState();
@@ -13,6 +19,7 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {  
   late bool autoDeleteCompleted;
   late bool showImportance;
+  late bool uwuifier;
 
   late final double _width = MediaQuery.of(context).size.width;
 
@@ -21,7 +28,8 @@ class _SettingsViewState extends State<SettingsView> {
       context,
       {
         'autoDeleteCompleted': autoDeleteCompleted,
-        'showImportance': showImportance
+        'showImportance': showImportance,
+        'uwuifier': uwuifier,
       }
     );
   }
@@ -32,6 +40,7 @@ class _SettingsViewState extends State<SettingsView> {
 
     autoDeleteCompleted = widget.autoDeleteCompleted;
     showImportance = widget.showImportance;
+    uwuifier = widget.uwuifier;
   }
 
   @override
@@ -71,6 +80,15 @@ class _SettingsViewState extends State<SettingsView> {
                       onChanged: (value) {
                         setState(() {
                           showImportance = value;
+                        });
+                      },
+                    ),
+                    SwitchListTile(
+                      title: Text('Uwu-ify todos'),
+                      value: uwuifier,
+                      onChanged: (value) {
+                        setState(() {
+                          uwuifier = value;
                         });
                       },
                     ),
