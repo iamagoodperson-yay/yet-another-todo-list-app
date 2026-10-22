@@ -74,7 +74,7 @@ class _SettingsViewState extends State<SettingsView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     SwitchListTile(
-                      title: Text('Auto-delete completed todos'),
+                      title: Text(uwuifier ? 'Auto-dewete compweted todos :3' : 'Auto-delete completed todos'),
                       value: autoDeleteCompleted,
                       onChanged: (value) {
                         setState(() {
@@ -84,7 +84,7 @@ class _SettingsViewState extends State<SettingsView> {
                       },
                     ),
                     SwitchListTile(
-                      title: Text('Show importance'),
+                      title: Text(uwuifier ? 'Show impowtance :3' : 'Show importance'),
                       value: showImportance,
                       onChanged: (value) {
                         setState(() {
