@@ -17,8 +17,44 @@ class Todo {
   Todo({required this.title, this.completed = false, this.importance = 1});
 }
 
-class MainApp extends StatelessWidget {
+class MainApp extends StatefulWidget {
   const MainApp({super.key});
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  ThemeMode themeMode = ThemeMode.system;
+
+  void themeModeCallback(ThemeMode newThemeMode) {
+    setState(() {
+      themeMode = newThemeMode;
+    });
+  }
+
+  void _loadThemeMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      final themeModeString = prefs.getString('themeMode') ?? 'system';
+      switch (themeModeString) {
+        case 'light':
+          themeMode = ThemeMode.light;
+          break;
+        case 'dark':
+          themeMode = ThemeMode.dark;
+          break;
+        default:
+          themeMode = ThemeMode.system;
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadThemeMode();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,13 +68,29 @@ class MainApp extends StatelessWidget {
           secondary: Colors.green,
         ),
       ),
-      home: const TodoView(),
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Colors.lightBlue,
+          primary: Colors.lightBlue,
+          secondary: Colors.teal,
+          brightness: Brightness.dark,
+        ),
+      ),
+      themeMode: themeMode,
+      home: TodoView(
+        themeMode: themeMode,
+        themeModeCallback: themeModeCallback,
+      ),
     );
   }
 }
 
 class TodoView extends StatefulWidget {
-  const TodoView({super.key});
+  final ThemeMode themeMode;
+  final void Function(ThemeMode) themeModeCallback;
+
+  const TodoView({super.key, required this.themeMode, required this.themeModeCallback});
 
   @override
   State<TodoView> createState() => _TodoViewState();
@@ -60,13 +112,15 @@ class _TodoViewState extends State<TodoView> {
   List<Todo> todos = [];
 
   Future<void> openSettings() async {
-    final result = await Navigator.push<Map<String, bool>>(
+    final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
         builder: (context) => SettingsView(
           autoDeleteCompleted: autoDeleteCompleted,
           showImportance: showImportance,
           uwuifier: uwuifier,
+          themeMode: widget.themeMode,
+          themeModeCallback: widget.themeModeCallback,
         ),
       ),
     );
@@ -149,7 +203,7 @@ class _TodoViewState extends State<TodoView> {
                 controller: _titleController,
                 decoration: InputDecoration(
                   border: OutlineInputBorder(),
-                  labelText: 'todo title',
+                  labelText: uwuifier ? 'Todo titew ( =ω=):' : 'Todo title',
                 ),
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) {
@@ -240,7 +294,7 @@ class _TodoViewState extends State<TodoView> {
                   controller: _titleController,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(),
-                    labelText: 'todo title',
+                    labelText: uwuifier ? 'Todo titew ( =ω=):' : 'Todo title',
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
