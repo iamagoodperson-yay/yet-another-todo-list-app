@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsView extends StatefulWidget {
   final bool autoDeleteCompleted;
@@ -22,6 +23,13 @@ class _SettingsViewState extends State<SettingsView> {
   late bool uwuifier;
 
   late final double _width = MediaQuery.of(context).size.width;
+
+  void saveSettings() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('autoDeleteCompleted', autoDeleteCompleted);
+    await prefs.setBool('showImportance', showImportance);
+    await prefs.setBool('uwuifier', uwuifier);
+  }
 
   void closeSettings() {
     Navigator.pop(
@@ -72,6 +80,7 @@ class _SettingsViewState extends State<SettingsView> {
                         setState(() {
                           autoDeleteCompleted = value;
                         });
+                        saveSettings();
                       },
                     ),
                     SwitchListTile(
@@ -81,6 +90,7 @@ class _SettingsViewState extends State<SettingsView> {
                         setState(() {
                           showImportance = value;
                         });
+                        saveSettings();
                       },
                     ),
                     SwitchListTile(
@@ -90,6 +100,7 @@ class _SettingsViewState extends State<SettingsView> {
                         setState(() {
                           uwuifier = value;
                         });
+                        saveSettings();
                       },
                     ),
                   ]

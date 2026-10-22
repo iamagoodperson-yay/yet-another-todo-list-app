@@ -1,7 +1,9 @@
 import 'dart:math';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:yet_another_todo_list_app/views/settings.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const MainApp());
@@ -30,31 +32,22 @@ class MainApp extends StatelessWidget {
           secondary: Colors.green,
         ),
       ),
-      home: const TodoView(autoDeleteCompleted: true, showImportance: true, uwuifier: true),
+      home: const TodoView(),
     );
   }
 }
 
 class TodoView extends StatefulWidget {
-  final bool autoDeleteCompleted;
-  final bool showImportance;
-  final bool uwuifier;
-
-  const TodoView({
-    super.key,
-    required this.autoDeleteCompleted,
-    required this.showImportance,
-    required this.uwuifier,
-  });
+  const TodoView({super.key});
 
   @override
   State<TodoView> createState() => _TodoViewState();
 }
 
 class _TodoViewState extends State<TodoView> {
-  late bool autoDeleteCompleted;
-  late bool showImportance;
-  late bool uwuifier;
+  bool autoDeleteCompleted = true;
+  bool showImportance = true;
+  bool uwuifier = true;
 
   late final TextEditingController _titleController;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -110,6 +103,7 @@ class _TodoViewState extends State<TodoView> {
     setState(() {
       todos.add(Todo(title: title, importance: importance));
     });
+    _saveTodos();
     _titleController.clear();
     Navigator.pop(context);
   }
@@ -121,6 +115,7 @@ class _TodoViewState extends State<TodoView> {
         todos[index].title = title;
         todos[index].importance = importance;
       });
+      _saveTodos();
       _titleController.clear();
       Navigator.pop(context);
     }
@@ -130,12 +125,14 @@ class _TodoViewState extends State<TodoView> {
     setState(() {
       todos.remove(todo);
     });
+    _saveTodos();
   }
 
   void setTodoCompleted(Todo todo, bool completed) {
     setState(() {
       todo.completed = completed;
     });
+    _saveTodos();
   }
 
   void addTodoDialog(BuildContext context) => showDialog(
@@ -322,14 +319,43 @@ class _TodoViewState extends State<TodoView> {
     );
   }
 
+  void _load() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      autoDeleteCompleted = prefs.getBool('autoDeleteCompleted') ?? true;
+      showImportance = prefs.getBool('showImportance') ?? true;
+      uwuifier = prefs.getBool('uwuifier') ?? true;
+
+      final List<String> todoStrings = prefs.getStringList('todos') ?? [];
+      todos = todoStrings.map((todoString) {
+        final Map<String, dynamic> todoMap = jsonDecode(todoString);
+        return Todo(
+          title: todoMap['title'],
+          completed: todoMap['completed'],
+          importance: todoMap['importance'],
+        );
+      }).toList();
+    });
+  }
+
+  void _saveTodos() async {
+    final prefs = await SharedPreferences.getInstance();
+    final todoStrings = todos.map((todo) {
+      return jsonEncode({
+        'title': todo.title,
+        'completed': todo.completed,
+        'importance': todo.importance,
+      });
+    }).toList();
+    await prefs.setStringList('todos', todoStrings);
+  }
+
   @override
   void initState() {
     super.initState();
     _titleController = TextEditingController();
 
-    autoDeleteCompleted = widget.autoDeleteCompleted;
-    showImportance = widget.showImportance;
-    uwuifier = widget.uwuifier;
+    _load();
   }
 
   @override
