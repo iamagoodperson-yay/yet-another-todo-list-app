@@ -208,7 +208,7 @@ class _TodoViewState extends State<TodoView> {
           Future<void> selectDialogDate() async {
             final DateTime? pickedDate = await showDatePicker(
               context: context,
-              initialDate: DateTime.now(),
+              initialDate: selectedDate ?? DateTime.now(),
               firstDate: DateTime.now(),
               lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
             );
@@ -436,6 +436,7 @@ class _TodoViewState extends State<TodoView> {
           title: todoMap['title'],
           completed: todoMap['completed'],
           importance: todoMap['importance'],
+          dueDate: todoMap['dueDate'] != null ? DateTime.parse(todoMap['dueDate']) : null
         );
       }).toList();
     });
@@ -448,6 +449,7 @@ class _TodoViewState extends State<TodoView> {
         'title': todo.title,
         'completed': todo.completed,
         'importance': todo.importance,
+        'dueDate': todo.dueDate!.toIso8601String(),
       });
     }).toList();
     await prefs.setStringList('todos', todoStrings);
@@ -647,7 +649,7 @@ class TodoListView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 todo.dueDate != null ? Text(
-                  todo.dueDate!.toLocal().toString().split(' ')[0],
+                  'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0]}',
                   style: TextStyle(
                     color: Colors.black,
                     fontSize: 14,
@@ -663,6 +665,7 @@ class TodoListView extends StatelessWidget {
               ],
             ),
             onTap: () => editTodoDialog(context, todo),
+            tileColor: todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) ? Colors.grey.withValues(alpha: 0.2) : null
           ),
         );
       },
