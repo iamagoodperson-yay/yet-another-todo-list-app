@@ -137,7 +137,7 @@ class _TodoViewState extends State<TodoView> {
     }
   }
 
-  void addTodo(String title, int importance) {
+  void addTodo(String title, int importance, DateTime? dueDate) {
     if (uwuifier) {
       var endings = [
         'uwu',
@@ -158,10 +158,18 @@ class _TodoViewState extends State<TodoView> {
       title = '$title ${endings[Random().nextInt(endings.length)]}';
     }
     setState(() {
-      todos.add(Todo(title: title, importance: importance, dueDate: selectedDate));
+      todos.add(Todo(title: title, importance: importance, dueDate: dueDate));
+      todos.sort((a, b) {
+        if (a.dueDate == null && b.dueDate == null) return 0;
+        if (a.dueDate == null) return 1;
+        if (b.dueDate == null) return -1;
+        return a.dueDate!.compareTo(b.dueDate!);
+      });
     });
     _saveTodos();
     _titleController.clear();
+    _tempImportance = 4;
+    selectedDate = null;
     Navigator.pop(context);
   }
 
@@ -195,8 +203,6 @@ class _TodoViewState extends State<TodoView> {
   void addTodoDialog(BuildContext context) => showDialog(
     context: context,
     builder: (context) {
-      bool dateNullError = false;
-
       return StatefulBuilder(
         builder: (context, setState) {
           Future<void> selectDialogDate() async {
@@ -292,13 +298,6 @@ class _TodoViewState extends State<TodoView> {
                       ),
                     ],
                   ),
-                  if (dateNullError) 
-                    Text(
-                      uwuifier
-                          ? 'Pwease sewect a due date >.<'
-                          : 'Please select a due date',
-                      style: TextStyle(color: Colors.red),
-                    ),
                 ],
               ),
             ),
@@ -306,13 +305,7 @@ class _TodoViewState extends State<TodoView> {
               SimpleDialogOption(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
-                    if (selectedDate == null) {
-                      setState(() {
-                        dateNullError = true;
-                      });
-                    } else {
-                      addTodo(_titleController.text, _tempImportance);
-                    }
+                    addTodo(_titleController.text, _tempImportance, selectedDate);
                   }
                 },
                 child: Text(uwuifier ? 'Done (✿^‿^)' : 'Done'),
@@ -650,11 +643,24 @@ class TodoListView extends StatelessWidget {
                 ),
               ],
             ),
-            trailing: IconButton(
-              icon: Icon(Icons.delete),
-              onPressed: () {
-                deleteTodo(todo);
-              },
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                todo.dueDate != null ? Text(
+                  todo.dueDate!.toLocal().toString().split(' ')[0],
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 14,
+                  ),
+                )
+                : const Text('No due date'),
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    deleteTodo(todo);
+                  },
+                ),
+              ],
             ),
             onTap: () => editTodoDialog(context, todo),
           ),
