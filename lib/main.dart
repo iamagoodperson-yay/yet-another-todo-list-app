@@ -227,6 +227,7 @@ class _TodoViewState extends State<TodoView> {
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               TextFormField(
                 controller: _titleController,
@@ -242,11 +243,12 @@ class _TodoViewState extends State<TodoView> {
                 },
               ),
               if (showImportance)
-                Row(
+                Wrap(
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     Text(uwuifier ? 'Impowtance owo:' : 'Importance:'),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    Wrap(
+                      alignment: WrapAlignment.spaceAround,
                       children: List.generate(5, (index) {
                         return IconButton(
                           icon: Stack(
@@ -281,7 +283,9 @@ class _TodoViewState extends State<TodoView> {
                     ),
                   ],
                 ),
-              Row(
+              Wrap(
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
                   ElevatedButton(
                     onPressed: () async {
@@ -347,6 +351,7 @@ class _TodoViewState extends State<TodoView> {
             key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 TextFormField(
                   controller: _titleController,
@@ -362,11 +367,11 @@ class _TodoViewState extends State<TodoView> {
                   },
                 ),
                 if (showImportance)
-                  Row(
+                  Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
                     children: [
-                      const Text('Importance:'),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      Text(uwuifier ? 'Impowtance owo:' : 'Importance:'),
+                      Wrap(
                         children: List.generate(5, (index) {
                           return IconButton(
                             icon: Stack(
@@ -405,7 +410,9 @@ class _TodoViewState extends State<TodoView> {
                       ),
                     ],
                   ),
-                Row(
+                Wrap(
+                  runSpacing: 8,
+                  crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
                     ElevatedButton(
                       onPressed: () async {
@@ -442,7 +449,7 @@ class _TodoViewState extends State<TodoView> {
                   editTodo(index);
                 }
               },
-              child: const Text('Done'),
+              child: Text(uwuifier ? 'Done (✿^‿^)' : 'Done'),
             ),
             SimpleDialogOption(
               onPressed: () {
@@ -486,7 +493,7 @@ class _TodoViewState extends State<TodoView> {
         'title': todo.title,
         'completed': todo.completed,
         'importance': todo.importance,
-        'dueDate': todo.dueDate!.toIso8601String(),
+        'dueDate': todo.dueDate?.toIso8601String(),
       });
     }).toList();
     await prefs.setStringList('todos', todoStrings);
@@ -547,7 +554,9 @@ class _TodoViewState extends State<TodoView> {
             else
               Padding(
                 padding: EdgeInsets.symmetric(
-                  horizontal: _width * 0.1,
+                  horizontal: _width > 700 ? 
+                    _width * 0.1 : _width > 400 ? 
+                    _width * 0.05 : 8,
                   vertical: _height * 0.075,
                 ).add(EdgeInsets.symmetric(vertical: 16)),
                 child: showImportance
@@ -664,7 +673,6 @@ class TodoListView extends StatelessWidget {
             title: Text(
               todo.title,
               style: TextStyle(
-                color: Colors.black,
                 decoration: todo.completed
                     ? TextDecoration.lineThrough
                     : TextDecoration.none,
@@ -688,7 +696,6 @@ class TodoListView extends StatelessWidget {
                 todo.dueDate != null ? Text(
                   'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0]}',
                   style: TextStyle(
-                    color: Colors.black,
                     fontSize: 14,
                   ),
                 )
