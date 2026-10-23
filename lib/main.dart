@@ -109,7 +109,7 @@ class _TodoViewState extends State<TodoView> {
   late final double _height = MediaQuery.of(context).size.height;
 
   int _tempImportance = 4;
-  DateTime? selectedDate;
+  DateTime? _selectedDate;
 
   late Map<int, MaterialColor> importanceOptions;
   List<Todo> todos = [];
@@ -137,7 +137,10 @@ class _TodoViewState extends State<TodoView> {
     }
   }
 
-  void addTodo(String title, int importance, DateTime? dueDate) {
+  void addTodo() {
+    String title = _titleController.text.trim();
+    int importance = _tempImportance;
+    DateTime? dueDate = _selectedDate;
     if (uwuifier) {
       var endings = [
         'uwu',
@@ -169,19 +172,24 @@ class _TodoViewState extends State<TodoView> {
     _saveTodos();
     _titleController.clear();
     _tempImportance = 4;
-    selectedDate = null;
+    _selectedDate = null;
     Navigator.pop(context);
   }
 
-  void editTodo(int index, String title, int importance) {
-    title.trim();
+  void editTodo(int index) {
+    String title = _titleController.text.trim();
+    int importance = _tempImportance;
+    DateTime? dueDate = _selectedDate;
     if (title.isNotEmpty) {
       setState(() {
         todos[index].title = title;
         todos[index].importance = importance;
+        todos[index].dueDate = dueDate;
       });
       _saveTodos();
       _titleController.clear();
+      _tempImportance = 4;
+      _selectedDate = null;
       Navigator.pop(context);
     }
   }
@@ -200,135 +208,136 @@ class _TodoViewState extends State<TodoView> {
     _saveTodos();
   }
 
+  Future<DateTime?> selectDialogDate() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+    );
+    return pickedDate;
+  }
+
   void addTodoDialog(BuildContext context) => showDialog(
     context: context,
-    builder: (context) {
-      return StatefulBuilder(
-        builder: (context, setState) {
-          Future<void> selectDialogDate() async {
-            final DateTime? pickedDate = await showDatePicker(
-              context: context,
-              initialDate: selectedDate ?? DateTime.now(),
-              firstDate: DateTime.now(),
-              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
-            );
-
-            setState(() {
-              selectedDate =  pickedDate!;
-            });
-          }
-
-          return AlertDialog(
-            title: Text(uwuifier ? "Add Todo >w<" : "Add Todo"),
-            content: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: _titleController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: uwuifier ? 'Todo titew ( =ω=):' : 'Todo title',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return uwuifier ? 'Pwease entew some text' : 'Please enter some text';
-                      }
-                      return null;
-                    },
-                  ),
-                  if (showImportance)
+    builder: (context) => StatefulBuilder(
+      builder: (context, setState) => AlertDialog(
+        title: Text(uwuifier ? "Add Todo >w<" : "Add Todo"),
+        content: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: _titleController,
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(),
+                  labelText: uwuifier ? 'Todo titew ( =ω=):' : 'Todo title',
+                ),
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) {
+                    return uwuifier ? 'Pwease entew some text' : 'Please enter some text';
+                  }
+                  return null;
+                },
+              ),
+              if (showImportance)
+                Row(
+                  children: [
+                    Text(uwuifier ? 'Impowtance owo:' : 'Importance:'),
                     Row(
-                      children: [
-                        Text(uwuifier ? 'Impowtance owo:' : 'Importance:'),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: List.generate(5, (index) {
-                            return IconButton(
-                              icon: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.circle,
-                                    size: 32,
-                                    color: importanceOptions[index],
-                                  ),
-                                ],
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: List.generate(5, (index) {
+                        return IconButton(
+                          icon: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 32,
+                                color: importanceOptions[index],
                               ),
-                              selectedIcon: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.circle,
-                                    size: 32,
-                                    color: importanceOptions[index],
-                                  ),
-                                  Icon(Icons.check, size: 16, color: Colors.white),
-                                ],
+                            ],
+                          ),
+                          selectedIcon: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                Icons.circle,
+                                size: 32,
+                                color: importanceOptions[index],
                               ),
-                              onPressed: () {
-                                setState(() {
-                                  _tempImportance = index;
-                                });
-                              },
-                              isSelected: _tempImportance == index,
-                            );
-                          }),
-                        ),
-                      ],
+                              Icon(Icons.check, size: 16, color: Colors.white),
+                            ],
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _tempImportance = index;
+                            });
+                          },
+                          isSelected: _tempImportance == index,
+                        );
+                      }),
                     ),
-                  Row(
-                    children: [
-                      ElevatedButton(
-                        onPressed: selectDialogDate,
-                        child: Text(
-                          uwuifier
-                              ? 'Sewect due date (⁄ ⁄O⁄ω⁄O⁄ ⁄)'
-                              : 'Select due date',
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      Text(
-                        selectedDate == null
-                            ? uwuifier
-                                ? 'No due date sewected (｡>﹏<｡)'
-                                : 'No due date selected'
-                            : selectedDate!.toLocal().toString().split(' ')[0],
-                      ),
-                    ],
+                  ],
+                ),
+              Row(
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      final DateTime? selected =  await selectDialogDate();
+                      if (selected != null) {
+                        setState(() {
+                          _selectedDate = selected;
+                        });
+                      }
+                    },
+                    child: Text(
+                      uwuifier
+                          ? 'Sewect due date (⁄ ⁄O⁄ω⁄O⁄ ⁄)'
+                          : 'Select due date',
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  Text(
+                    _selectedDate == null
+                        ? uwuifier
+                            ? 'No due date sewected (｡>﹏<｡)'
+                            : 'No due date selected'
+                        : _selectedDate!.toLocal().toString().split(' ')[0],
                   ),
                 ],
               ),
-            ),
-            actions: [
-              SimpleDialogOption(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    addTodo(_titleController.text, _tempImportance, selectedDate);
-                  }
-                },
-                child: Text(uwuifier ? 'Done (✿^‿^)' : 'Done'),
-              ),
-              SimpleDialogOption(
-                onPressed: () {
-                  _titleController.clear();
-                  _tempImportance = 4;
-                  selectedDate = null;
-                  Navigator.pop(context);
-                },
-                child: Text(uwuifier ? 'Cancew >.<' : 'Cancel'),
-              ),
             ],
-          );
-        }
-      );
-    },
+          ),
+        ),
+        actions: [
+          SimpleDialogOption(
+            onPressed: () {
+              if (_formKey.currentState!.validate()) {
+                addTodo();
+              }
+            },
+            child: Text(uwuifier ? 'Done (✿^‿^)' : 'Done'),
+          ),
+          SimpleDialogOption(
+            onPressed: () {
+              _titleController.clear();
+              _tempImportance = 4;
+              _selectedDate = null;
+              Navigator.pop(context);
+            },
+            child: Text(uwuifier ? 'Cancew >.<' : 'Cancel'),
+          ),
+        ],
+      ),
+    ),
   );
 
   void editTodoDialog(BuildContext context, int index) {
     _titleController.text = todos[index].title;
     _tempImportance = todos[index].importance;
+    _selectedDate = todos[index].dueDate;
     showDialog(
       context: context,
       builder: (context) => StatefulBuilder(
@@ -396,6 +405,33 @@ class _TodoViewState extends State<TodoView> {
                       ),
                     ],
                   ),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      onPressed: () async {
+                        final DateTime? selected =  await selectDialogDate();
+                        if (selected != null) {
+                          setState(() {
+                            _selectedDate = selected;
+                          });
+                        }
+                      },
+                      child: Text(
+                        uwuifier
+                            ? 'Sewect due date (⁄ ⁄O⁄ω⁄O⁄ ⁄)'
+                            : 'Select due date',
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Text(
+                      _selectedDate == null
+                          ? uwuifier
+                              ? 'No due date sewected (｡>﹏<｡)'
+                              : 'No due date selected'
+                          : _selectedDate!.toLocal().toString().split(' ')[0],
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
@@ -403,7 +439,7 @@ class _TodoViewState extends State<TodoView> {
             SimpleDialogOption(
               onPressed: () {
                 if (_formKey.currentState!.validate()) {
-                  editTodo(index, _titleController.text, _tempImportance);
+                  editTodo(index);
                 }
               },
               child: const Text('Done'),
@@ -413,6 +449,7 @@ class _TodoViewState extends State<TodoView> {
                 _titleController.clear();
                 Navigator.pop(context);
                 _tempImportance = 4;
+                _selectedDate = null;
               },
               child: const Text('Cancel'),
             ),
