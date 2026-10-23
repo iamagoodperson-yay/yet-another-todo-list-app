@@ -12,9 +12,10 @@ void main() {
 class Todo {
   String title;
   bool completed;
-  int importance; // 0 lowest, 4 highest
+  int importance; // 0 highest, 4 lowest
+  DateTime? dueDate;
 
-  Todo({required this.title, this.completed = false, this.importance = 1});
+  Todo({required this.title, this.completed = false, this.importance = 4, this.dueDate});
 }
 
 class MainApp extends StatefulWidget {
@@ -108,6 +109,8 @@ class _TodoViewState extends State<TodoView> {
   late final double _height = MediaQuery.of(context).size.height;
 
   int _tempImportance = 4;
+  DateTime? selectedDate;
+
   late Map<int, MaterialColor> importanceOptions;
   List<Todo> todos = [];
 
@@ -155,7 +158,7 @@ class _TodoViewState extends State<TodoView> {
       title = '$title ${endings[Random().nextInt(endings.length)]}';
     }
     setState(() {
-      todos.add(Todo(title: title, importance: importance));
+      todos.add(Todo(title: title, importance: importance, dueDate: selectedDate));
     });
     _saveTodos();
     _titleController.clear();
@@ -191,90 +194,143 @@ class _TodoViewState extends State<TodoView> {
 
   void addTodoDialog(BuildContext context) => showDialog(
     context: context,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setState) => AlertDialog(
-        title: Text(uwuifier ? "Add Todo >w<" : "Add Todo"),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(),
-                  labelText: uwuifier ? 'Todo titew ( =ω=):' : 'Todo title',
-                ),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Pwease entew some text';
-                  }
-                  return null;
-                },
-              ),
-              if (showImportance)
-                Row(
-                  children: [
-                    Text(uwuifier ? 'Impowtance owo:' : 'Importance:'),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: List.generate(5, (index) {
-                        return IconButton(
-                          icon: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Icon(
-                                Icons.circle,
-                                size: 32,
-                                color: importanceOptions[index],
-                              ),
-                            ],
-                          ),
-                          selectedIcon: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Icon(
-                                Icons.circle,
-                                size: 32,
-                                color: importanceOptions[index],
-                              ),
-                              Icon(Icons.check, size: 16, color: Colors.white),
-                            ],
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _tempImportance = index;
-                            });
-                          },
-                          isSelected: _tempImportance == index,
-                        );
-                      }),
+    builder: (context) {
+      bool dateNullError = false;
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          Future<void> selectDialogDate() async {
+            final DateTime? pickedDate = await showDatePicker(
+              context: context,
+              initialDate: DateTime.now(),
+              firstDate: DateTime.now(),
+              lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
+            );
+
+            setState(() {
+              selectedDate =  pickedDate!;
+            });
+          }
+
+          return AlertDialog(
+            title: Text(uwuifier ? "Add Todo >w<" : "Add Todo"),
+            content: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: _titleController,
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: uwuifier ? 'Todo titew ( =ω=):' : 'Todo title',
                     ),
-                  ],
-                ),
+                    validator: (value) {
+                      if (value == null || value.trim().isEmpty) {
+                        return uwuifier ? 'Pwease entew some text' : 'Please enter some text';
+                      }
+                      return null;
+                    },
+                  ),
+                  if (showImportance)
+                    Row(
+                      children: [
+                        Text(uwuifier ? 'Impowtance owo:' : 'Importance:'),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: List.generate(5, (index) {
+                            return IconButton(
+                              icon: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.circle,
+                                    size: 32,
+                                    color: importanceOptions[index],
+                                  ),
+                                ],
+                              ),
+                              selectedIcon: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.circle,
+                                    size: 32,
+                                    color: importanceOptions[index],
+                                  ),
+                                  Icon(Icons.check, size: 16, color: Colors.white),
+                                ],
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _tempImportance = index;
+                                });
+                              },
+                              isSelected: _tempImportance == index,
+                            );
+                          }),
+                        ),
+                      ],
+                    ),
+                  Row(
+                    children: [
+                      ElevatedButton(
+                        onPressed: selectDialogDate,
+                        child: Text(
+                          uwuifier
+                              ? 'Sewect due date (⁄ ⁄O⁄ω⁄O⁄ ⁄)'
+                              : 'Select due date',
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Text(
+                        selectedDate == null
+                            ? uwuifier
+                                ? 'No due date sewected (｡>﹏<｡)'
+                                : 'No due date selected'
+                            : selectedDate!.toLocal().toString().split(' ')[0],
+                      ),
+                    ],
+                  ),
+                  if (dateNullError) 
+                    Text(
+                      uwuifier
+                          ? 'Pwease sewect a due date >.<'
+                          : 'Please select a due date',
+                      style: TextStyle(color: Colors.red),
+                    ),
+                ],
+              ),
+            ),
+            actions: [
+              SimpleDialogOption(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    if (selectedDate == null) {
+                      setState(() {
+                        dateNullError = true;
+                      });
+                    } else {
+                      addTodo(_titleController.text, _tempImportance);
+                    }
+                  }
+                },
+                child: Text(uwuifier ? 'Done (✿^‿^)' : 'Done'),
+              ),
+              SimpleDialogOption(
+                onPressed: () {
+                  _titleController.clear();
+                  _tempImportance = 4;
+                  selectedDate = null;
+                  Navigator.pop(context);
+                },
+                child: Text(uwuifier ? 'Cancew >.<' : 'Cancel'),
+              ),
             ],
-          ),
-        ),
-        actions: [
-          SimpleDialogOption(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                addTodo(_titleController.text, _tempImportance);
-              }
-            },
-            child: Text(uwuifier ? 'Done (✿^‿^)' : 'Done'),
-          ),
-          SimpleDialogOption(
-            onPressed: () {
-              _titleController.clear();
-              Navigator.pop(context);
-              _tempImportance = 0;
-            },
-            child: Text(uwuifier ? 'Cancew >.<' : 'Cancel'),
-          ),
-        ],
-      ),
-    ),
+          );
+        }
+      );
+    },
   );
 
   void editTodoDialog(BuildContext context, int index) {
@@ -298,7 +354,7 @@ class _TodoViewState extends State<TodoView> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().isEmpty) {
-                      return 'Please enter some text';
+                      return uwuifier ? 'Pwease entew some text' : 'Please enter some text';
                     }
                     return null;
                   },
@@ -363,7 +419,7 @@ class _TodoViewState extends State<TodoView> {
               onPressed: () {
                 _titleController.clear();
                 Navigator.pop(context);
-                _tempImportance = 0;
+                _tempImportance = 4;
               },
               child: const Text('Cancel'),
             ),
