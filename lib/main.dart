@@ -663,7 +663,7 @@ class TodoListView extends StatelessWidget {
         return AnimatedOpacity(
           key: ValueKey(todo),
           opacity: autoDeleteCompleted && todo.completed 
-              ? 0.0 : todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().add(const Duration(days: 1))) 
+              ? 0.0 : todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) 
               ? 0.5 : 1.0,
           duration: const Duration(seconds: 3),
           onEnd: () {
@@ -711,7 +711,7 @@ class TodoListView extends StatelessWidget {
               ],
             ),
             onTap: () => editTodoDialog(context, todo),
-            tileColor: todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().add(const Duration(days: 1))) ? Colors.grey.withValues(alpha: 0.2) : null
+            tileColor: todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) ? Colors.grey.withValues(alpha: 0.2) : null
           ),
         );
       },
