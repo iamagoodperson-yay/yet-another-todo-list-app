@@ -108,7 +108,7 @@ class _SettingsViewState extends State<SettingsView> {
                       },
                     ),
                     SwitchListTile(
-                      title: Text('uwuifier mode'),
+                      title: Text(uwuifier ? 'Uwuifier mode :3' : 'Uwuifier mode'),
                       value: uwuifier,
                       onChanged: (value) {
                         setState(() {
@@ -120,37 +120,37 @@ class _SettingsViewState extends State<SettingsView> {
                     DropdownButtonFormField<ThemeMode>(
                       initialValue: themeMode,
                       decoration: InputDecoration(
-                        labelText: 'Theme',
+                        labelText: uwuifier ? 'Theme :3' : 'Theme',
                         border: OutlineInputBorder(),
                       ),
                       items: [
                         DropdownMenuItem(
                           value: ThemeMode.light,
-                          child: const Row(
+                          child: Row(
                             children: [
-                              Icon(Icons.light_mode),
-                              SizedBox(width: 8),
-                              Text('Light'),
+                              const Icon(Icons.light_mode),
+                              const SizedBox(width: 8),
+                              Text(uwuifier ? 'Light (owo)' : 'Light'),
                             ],
                           ),
                         ),
                         DropdownMenuItem(
                           value: ThemeMode.dark,
-                          child: const Row(
+                          child: Row(
                             children: [
-                              Icon(Icons.dark_mode),
-                              SizedBox(width: 8),
-                              Text('Dark'),
+                              const Icon(Icons.dark_mode),
+                              const SizedBox(width: 8),
+                              Text(uwuifier ? 'Dark (–w–)' : 'Dark'),
                             ],
                           ),
                         ),
                         DropdownMenuItem(
                           value: ThemeMode.system,
-                          child: const Row(
+                          child: Row(
                             children: [
-                              Icon(Icons.computer),
-                              SizedBox(width: 8),
-                              Text('System setting'),
+                              const Icon(Icons.computer),
+                              const SizedBox(width: 8),
+                              Text(uwuifier ? 'System setting (>w<)' : 'System setting'),
                             ],
                           ),
                         ),

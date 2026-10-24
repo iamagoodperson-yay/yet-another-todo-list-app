@@ -662,7 +662,9 @@ class TodoListView extends StatelessWidget {
         final todo = todos[index];
         return AnimatedOpacity(
           key: ValueKey(todo),
-          opacity: autoDeleteCompleted && todo.completed ? 0.0 : 1.0,
+          opacity: autoDeleteCompleted && todo.completed 
+              ? 0.0 : todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().add(const Duration(days: 1))) 
+              ? 0.5 : 1.0,
           duration: const Duration(seconds: 3),
           onEnd: () {
             if (autoDeleteCompleted && todo.completed) {
@@ -694,7 +696,7 @@ class TodoListView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 todo.dueDate != null ? Text(
-                  'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0]}',
+                  'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0].replaceAll(RegExp(r'-'), '/')}',
                   style: TextStyle(
                     fontSize: 14,
                   ),
@@ -709,7 +711,7 @@ class TodoListView extends StatelessWidget {
               ],
             ),
             onTap: () => editTodoDialog(context, todo),
-            tileColor: todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) ? Colors.grey.withValues(alpha: 0.2) : null
+            tileColor: todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().add(const Duration(days: 1))) ? Colors.grey.withValues(alpha: 0.2) : null
           ),
         );
       },
