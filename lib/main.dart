@@ -568,36 +568,45 @@ class _TodoViewState extends State<TodoView> {
                         if (todos.where((todo) => todo.importance == index).isEmpty) {
                           return const SizedBox.shrink();
                         }
-                        return Row(
-                          children: [
-                            Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                Container(
-                                  width: 2,
-                                  height: (48.0 * todos.where((todo) => todo.importance == index).length) - 8.0,
-                                  color: importanceOptions[index],
+                        return IntrinsicHeight(
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              SizedBox(
+                                width: 24,
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Positioned(
+                                      top: 4,
+                                      bottom: 4,
+                                      child: Container(
+                                        width: 2,
+                                        color: importanceOptions[index],
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.circle,
+                                      color: importanceOptions[index],
+                                    ),
+                                  ],
                                 ),
-                                Icon(
-                                  Icons.circle,
-                                  color: importanceOptions[index],
-                                ),
-                              ],
-                            ),
-                            Expanded(
-                              child: TodoListView(
-                                todos: todos
-                                  .where((todo) => todo.importance == index)
-                                  .toList(),
-                                autoDeleteCompleted: autoDeleteCompleted,
-                                showImportance: showImportance,
-                                editTodoDialog: (context, todo) =>
-                                  editTodoDialog(context, todos.indexOf(todo)),
-                                deleteTodo: deleteTodo,
-                                setTodoCompleted: setTodoCompleted,
                               ),
-                            ),
-                          ],
+                              Expanded(
+                                child: TodoListView(
+                                  todos: todos
+                                    .where((todo) => todo.importance == index)
+                                    .toList(),
+                                  autoDeleteCompleted: autoDeleteCompleted,
+                                  showImportance: showImportance,
+                                  editTodoDialog: (context, todo) =>
+                                    editTodoDialog(context, todos.indexOf(todo)),
+                                  deleteTodo: deleteTodo,
+                                  setTodoCompleted: setTodoCompleted,
+                                ),
+                              ),
+                            ],
+                          ),
                         );
                       },
                     )
