@@ -668,47 +668,59 @@ class TodoListView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: todos.map((todo) {
-        return ListTile(
-          title: Text(
-            todo.title,
-            style: TextStyle(
-              decoration: todo.completed
-                  ? TextDecoration.lineThrough
-                  : TextDecoration.none,
+        return AnimatedOpacity(
+          key: ValueKey(todo),
+          opacity: autoDeleteCompleted && todo.completed 
+              ? 0.0 : todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) 
+              ? 0.5 : 1.0,
+          duration: const Duration(seconds: 3),
+          onEnd: () {
+            if (autoDeleteCompleted && todo.completed) {
+              deleteTodo(todo);
+            }
+          },
+          child: ListTile(
+            title: Text(
+              todo.title,
+              style: TextStyle(
+                decoration: todo.completed
+                    ? TextDecoration.lineThrough
+                    : TextDecoration.none,
+              ),
             ),
-          ),
-          leading: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Checkbox(
-                value: todo.completed,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setTodoCompleted(todo, value);
-                },
-              ),
-            ],
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              todo.dueDate != null ? Text(
-                'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0].replaceAll(RegExp(r'-'), '/')}',
-                style: TextStyle(
-                  fontSize: 14,
+            leading: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Checkbox(
+                  value: todo.completed,
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setTodoCompleted(todo, value);
+                  },
                 ),
-              )
-              : const Text('No due date'),
-              IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {
-                  deleteTodo(todo);
-                },
-              ),
-            ],
+              ],
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                todo.dueDate != null ? Text(
+                  'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0].replaceAll(RegExp(r'-'), '/')}',
+                  style: TextStyle(
+                    fontSize: 14,
+                  ),
+                )
+                : const Text('No due date'),
+                IconButton(
+                  icon: Icon(Icons.delete),
+                  onPressed: () {
+                    deleteTodo(todo);
+                  },
+                ),
+              ],
+            ),
+            onTap: () => editTodoDialog(context, todo),
+            tileColor: todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) ? Colors.grey.withValues(alpha: 0.2) : null
           ),
-          onTap: () => editTodoDialog(context, todo),
-          tileColor: todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) ? Colors.grey.withValues(alpha: 0.2) : null
         );
       }).toList(),
     );
