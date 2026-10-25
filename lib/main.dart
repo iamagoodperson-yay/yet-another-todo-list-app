@@ -537,76 +537,79 @@ class _TodoViewState extends State<TodoView> {
       body: SafeArea(
         child: Stack(
           children: [
-            if (todos.isEmpty)
-              Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.inbox, size: 64, color: Colors.grey),
-                    SizedBox(height: 16),
-                    Text(
-                      uwuifier ? "No todos yet (｡>﹏<｡)" : "No todos yet",
-                      style: TextStyle(fontSize: 24, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              )
-            else
-              Padding(
-                padding: EdgeInsets.symmetric(
-                  horizontal: _width > 700 ? 
-                    _width * 0.1 : _width > 400 ? 
-                    _width * 0.05 : 8,
-                  vertical: _height * 0.075,
-                ).add(EdgeInsets.symmetric(vertical: 16)),
-                child: showImportance
-                  ? ListView.builder(
-                    itemCount: importanceOptions.length,
-                    itemBuilder: (context, index) {
-                      if (todos.where((todo) => todo.importance == index).isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-                      return Row(
-                        children: [
-                          Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Container(
-                                width: 2,
-                                height: (48.0 * todos.where((todo) => todo.importance == index).length) - 8.0,
-                                color: importanceOptions[index],
-                              ),
-                              Icon(
-                                Icons.circle,
-                                color: importanceOptions[index],
-                              ),
-                            ],
-                          ),
-                          Expanded(
-                            child: TodoListView(
-                              todos: todos
-                                .where((todo) => todo.importance == index)
-                                .toList(),
-                              autoDeleteCompleted: autoDeleteCompleted,
-                              showImportance: showImportance,
-                              editTodoDialog: (context, todo) =>
-                                editTodoDialog(context, todos.indexOf(todo)),
-                              deleteTodo: deleteTodo,
-                              setTodoCompleted: setTodoCompleted,
+            Positioned.fill(
+              child: todos.isEmpty ?
+                Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.inbox, size: 64, color: Colors.grey),
+                      SizedBox(height: 16),
+                      Text(
+                        uwuifier ? "No todos yet (｡>﹏<｡)" : "No todos yet",
+                        style: TextStyle(fontSize: 24, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                )
+              : SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: _width > 700 ? 
+                        _width * 0.1 : _width > 400 ? 
+                        _width * 0.05 : 8,
+                    vertical: _height * 0.075,
+                  ).add(EdgeInsets.symmetric(vertical: 16)),
+                  child: showImportance
+                    ? ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: importanceOptions.length,
+                      itemBuilder: (context, index) {
+                        if (todos.where((todo) => todo.importance == index).isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Row(
+                          children: [
+                            Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                Container(
+                                  width: 2,
+                                  height: (48.0 * todos.where((todo) => todo.importance == index).length) - 8.0,
+                                  color: importanceOptions[index],
+                                ),
+                                Icon(
+                                  Icons.circle,
+                                  color: importanceOptions[index],
+                                ),
+                              ],
                             ),
-                          ),
-                        ],
-                      );
-                    },
-                  )
-                : TodoListView(
-                  todos: todos,
-                  autoDeleteCompleted: autoDeleteCompleted,
-                  showImportance: showImportance,
-                  editTodoDialog: (context, todo) =>
-                    editTodoDialog(context, todos.indexOf(todo)),
-                  deleteTodo: deleteTodo,
-                  setTodoCompleted: setTodoCompleted,
+                            Expanded(
+                              child: TodoListView(
+                                todos: todos
+                                  .where((todo) => todo.importance == index)
+                                  .toList(),
+                                autoDeleteCompleted: autoDeleteCompleted,
+                                showImportance: showImportance,
+                                editTodoDialog: (context, todo) =>
+                                  editTodoDialog(context, todos.indexOf(todo)),
+                                deleteTodo: deleteTodo,
+                                setTodoCompleted: setTodoCompleted,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    )
+                  : TodoListView(
+                    todos: todos,
+                    autoDeleteCompleted: autoDeleteCompleted,
+                    showImportance: showImportance,
+                    editTodoDialog: (context, todo) =>
+                      editTodoDialog(context, todos.indexOf(todo)),
+                    deleteTodo: deleteTodo,
+                    setTodoCompleted: setTodoCompleted,
+                  ),
                 ),
               ),
             Positioned(
@@ -654,67 +657,51 @@ class TodoListView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: todos.length,
-      itemBuilder: (context, index) {
-        final todo = todos[index];
-        return AnimatedOpacity(
-          key: ValueKey(todo),
-          opacity: autoDeleteCompleted && todo.completed 
-              ? 0.0 : todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) 
-              ? 0.5 : 1.0,
-          duration: const Duration(seconds: 3),
-          onEnd: () {
-            if (autoDeleteCompleted && todo.completed) {
-              deleteTodo(todo);
-            }
-          },
-          child: ListTile(
-            title: Text(
-              todo.title,
-              style: TextStyle(
-                decoration: todo.completed
-                    ? TextDecoration.lineThrough
-                    : TextDecoration.none,
-              ),
+    return Column(
+      children: todos.map((todo) {
+        return ListTile(
+          title: Text(
+            todo.title,
+            style: TextStyle(
+              decoration: todo.completed
+                  ? TextDecoration.lineThrough
+                  : TextDecoration.none,
             ),
-            leading: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Checkbox(
-                  value: todo.completed,
-                  onChanged: (value) {
-                    if (value == null) return;
-                    setTodoCompleted(todo, value);
-                  },
-                ),
-              ],
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                todo.dueDate != null ? Text(
-                  'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0].replaceAll(RegExp(r'-'), '/')}',
-                  style: TextStyle(
-                    fontSize: 14,
-                  ),
-                )
-                : const Text('No due date'),
-                IconButton(
-                  icon: Icon(Icons.delete),
-                  onPressed: () {
-                    deleteTodo(todo);
-                  },
-                ),
-              ],
-            ),
-            onTap: () => editTodoDialog(context, todo),
-            tileColor: todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) ? Colors.grey.withValues(alpha: 0.2) : null
           ),
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Checkbox(
+                value: todo.completed,
+                onChanged: (value) {
+                  if (value == null) return;
+                  setTodoCompleted(todo, value);
+                },
+              ),
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              todo.dueDate != null ? Text(
+                'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0].replaceAll(RegExp(r'-'), '/')}',
+                style: TextStyle(
+                  fontSize: 14,
+                ),
+              )
+              : const Text('No due date'),
+              IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  deleteTodo(todo);
+                },
+              ),
+            ],
+          ),
+          onTap: () => editTodoDialog(context, todo),
+          tileColor: todo.dueDate != null && todo.dueDate!.isBefore(DateTime.now().subtract(const Duration(days: 1))) ? Colors.grey.withValues(alpha: 0.2) : null
         );
-      },
+      }).toList(),
     );
   }
 }
