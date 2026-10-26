@@ -6,10 +6,13 @@ class SettingsView extends StatefulWidget {
   final bool showImportance;
   final bool showAsTimeToDue;
   final bool uwuifier;
+
   final String categorisationMode;
   final void Function() categorisationModeCallback;
   final ThemeMode themeMode;
   final void Function(ThemeMode) themeModeCallback;
+  final bool puzzleMode;
+  final void Function() puzzleModeCallback;
 
   const SettingsView({
     super.key,
@@ -21,6 +24,8 @@ class SettingsView extends StatefulWidget {
     required this.categorisationModeCallback,
     required this.themeMode,
     required this.themeModeCallback,
+    required this.puzzleMode,
+    required this.puzzleModeCallback,
   });
 
   @override
@@ -32,10 +37,13 @@ class _SettingsViewState extends State<SettingsView> {
   late bool showImportance;
   late bool showAsTimeToDue;
   late bool uwuifier;
+
   late String categorisationMode;
   late void Function() categorisationModeCallback;
   late ThemeMode themeMode;
   late void Function(ThemeMode) themeModeCallback;
+  late bool puzzleMode;
+  late void Function() puzzleModeCallback;
 
   late final double _width = MediaQuery.of(context).size.width;
 
@@ -57,8 +65,25 @@ class _SettingsViewState extends State<SettingsView> {
       'uwuifier': uwuifier,
       'categorisationMode': categorisationMode,
       'themeMode': themeMode,
+      'puzzleMode': puzzleMode,
     });
   }
+
+  void puzzleDialog(BuildContext context) => showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      title: const Text('Hmmm...'),
+      content: const Text(
+        'What did this do? This changed nothing ⁉️',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Close'),
+        ),
+      ],
+    ),
+  );
 
   @override
   void initState() {
@@ -72,6 +97,8 @@ class _SettingsViewState extends State<SettingsView> {
     categorisationModeCallback = widget.categorisationModeCallback;
     themeMode = widget.themeMode;
     themeModeCallback = widget.themeModeCallback;
+    puzzleMode = widget.puzzleMode;
+    puzzleModeCallback = widget.puzzleModeCallback;
   }
 
   @override
@@ -222,6 +249,29 @@ class _SettingsViewState extends State<SettingsView> {
                       },
                     ),
                   ],
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 16,
+              child: TextButton(
+                onPressed: () {
+                  setState(() {
+                    puzzleMode = true;
+                    showImportance = true;
+                    puzzleModeCallback();
+                  });
+                  puzzleDialog(context);
+                },
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                ),
+                child: Text(
+                  'I wonder what this button does...',
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: puzzleMode ? Colors.red : Colors.white,
+                  ),
                 ),
               ),
             ),

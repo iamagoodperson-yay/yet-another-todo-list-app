@@ -99,6 +99,7 @@ class _TodoViewState extends State<TodoView> {
   bool showAsTimeToDue = true;
   bool uwuifier = true;
   String categorisationMode = 'importance';
+  bool puzzleMode = false;
 
   late final TextEditingController _titleController;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -122,9 +123,11 @@ class _TodoViewState extends State<TodoView> {
           showAsTimeToDue: showAsTimeToDue,
           uwuifier: uwuifier,
           categorisationMode: categorisationMode,
-          categorisationModeCallback: () => _sortTodos(),
+          categorisationModeCallback: () => setState(() => _sortTodos()),
           themeMode: widget.themeMode,
           themeModeCallback: widget.themeModeCallback,
+          puzzleMode: puzzleMode,
+          puzzleModeCallback: () => puzzleModeCallback(),
         ),
       ),
     );
@@ -136,14 +139,26 @@ class _TodoViewState extends State<TodoView> {
         showAsTimeToDue = result['showAsTimeToDue']!;
         uwuifier = result['uwuifier']!;
         categorisationMode = result['categorisationMode']!;
+        puzzleMode = result['puzzleMode']!;
       });
     }
   }
 
-  void addTodo() { //adds todo, uwuifies if uwuifier is true
+  void addTodo(BuildContext context) { //adds todo, uwuifies if uwuifier is true
     String title = _titleController.text.trim();
     int importance = _tempImportance;
     DateTime? dueDate = _selectedDate;
+    bool puzzleSolved = false;
+    if (puzzleMode) {
+      if (title.contains('write') && title.contains('paper')) {
+        if (importance <= 1) {
+          if (dueDate != null && dueDate.isBefore(DateTime.now().add(const Duration(days: 2))) 
+                && dueDate.isAfter(DateTime.now().subtract(const Duration(days: 1)))) {
+            puzzleSolved = true;
+          }
+        }
+      }
+    }
     if (uwuifier) {
       var endings = [
         'uwu',
@@ -173,6 +188,13 @@ class _TodoViewState extends State<TodoView> {
     _tempImportance = 4;
     _selectedDate = null;
     Navigator.pop(context);
+    if (puzzleSolved) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          puzzleSolvedDialog(this.context);
+        }
+      });
+    }
   }
 
   void editTodo(int index) { // basically saves everything as everything
@@ -208,6 +230,23 @@ class _TodoViewState extends State<TodoView> {
     _saveTodos();
   }
 
+  void puzzleModeCallback() {
+    setState(() {
+      puzzleMode = true;
+      todos = [
+        Todo(title: "I can't seem to remember what I was about to do..."),
+        Todo(title: "I think it was something important..."),
+        Todo(title: "like, very very important..."),
+        Todo(title: "Maybe it was something I needed to do today..."),
+        Todo(title: "Or tomorrow..."),
+        Todo(title: "But definitely by tomorrow"),
+        Todo(title: "I should probably 'write' it down somewhere..."),
+        Todo(title: "like, on a piece of 'paper' or something..."),
+        Todo(title: "Maybe that has something to do with it..."),
+      ];
+    });
+  }
+
   void _sortTodos() {
     todos.sort((a, b) {
       if (categorisationMode == 'importance') {
@@ -232,6 +271,7 @@ class _TodoViewState extends State<TodoView> {
           return dateComparison;
         }
       } else if (categorisationMode == 'alphabetical') {
+        // sorts by alphabetical order
         return a.title.toLowerCase().compareTo(b.title.toLowerCase());
       }
       return 0;
@@ -247,6 +287,23 @@ class _TodoViewState extends State<TodoView> {
     );
     return pickedDate;
   }
+
+  void puzzleSolvedDialog(BuildContext context) => showDialog(
+    context: context,
+    useRootNavigator: true,
+    builder: (context) => AlertDialog(
+      title: const Text("Puzzle Solved!"),
+      content: const Text("Congratulations! You've solved the puzzle!\nHere's a code for you that will definintely not have any importance whatsoever on future projects that I make: 427193"),
+      actions: [
+        SimpleDialogOption(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          child: const Text('OK'),
+        ),
+      ],
+    ),
+  );
 
   void addTodoDialog(BuildContext context) => showDialog(
     context: context,
@@ -349,7 +406,7 @@ class _TodoViewState extends State<TodoView> {
           SimpleDialogOption(
             onPressed: () {
               if (_formKey.currentState!.validate()) {
-                addTodo();
+                addTodo(context);
               }
             },
             child: Text(uwuifier ? 'Done (✿^‿^)' : 'Done'),
@@ -711,7 +768,10 @@ class TodoListView extends StatelessWidget {
   String _showToDue(Todo todo) {
     Duration difference = todo.dueDate!.difference(DateTime.now());
     difference += const Duration(days: 1);
-    String timeString = '';
+    if (difference.inDays == 0) {
+      return 'today';
+    }
+    String timeString = 'in ';
     if (difference.inDays > 365) {
       difference.inDays ~/ 365 == 1
           ? timeString += '${difference.inDays ~/ 365} year '
@@ -784,7 +844,7 @@ class TodoListView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 todo.dueDate != null ? Text(
-                  showAsTimeToDue ? 'Due: in ${_showToDue(todo)}' : 'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0].replaceAll(RegExp(r'-'), '/')}',
+                  showAsTimeToDue ? 'Due ${_showToDue(todo)}' : 'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0].replaceAll(RegExp(r'-'), '/')}',
                   style: TextStyle(
                     fontSize: 14,
                   ),
