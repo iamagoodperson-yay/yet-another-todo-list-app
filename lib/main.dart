@@ -28,7 +28,11 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   ThemeMode themeMode = ThemeMode.system;
 
-  void themeModeCallback(ThemeMode newThemeMode) => themeMode = newThemeMode;
+  void themeModeCallback(ThemeMode newThemeMode) {
+    setState(() {
+      themeMode = newThemeMode;
+    });
+  }
 
   void _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
