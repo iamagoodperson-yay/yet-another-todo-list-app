@@ -97,6 +97,7 @@ class _TodoViewState extends State<TodoView> {
   bool autoDeleteCompleted = true;
   bool showImportance = true;
   bool uwuifier = true;
+  bool showAsTimeToDue = true;
   String categorisationMode = 'importance';
 
   late final TextEditingController _titleController;
@@ -571,11 +572,11 @@ class _TodoViewState extends State<TodoView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.inbox, size: 64, color: Colors.grey),
-                      SizedBox(height: 16),
+                      const Icon(Icons.inbox, size: 64, color: Colors.grey),
+                      const SizedBox(height: 16),
                       Text(
                         uwuifier ? "No todos yet (｡>﹏<｡)" : "No todos yet",
-                        style: TextStyle(fontSize: 24, color: Colors.grey),
+                        style: const TextStyle(fontSize: 24, color: Colors.grey),
                       ),
                     ],
                   ),
@@ -586,7 +587,7 @@ class _TodoViewState extends State<TodoView> {
                         _width * 0.1 : _width > 400 ? 
                         _width * 0.05 : 8,
                     vertical: _height * 0.075,
-                  ).add(EdgeInsets.symmetric(vertical: 16)),
+                  ).add(const EdgeInsets.symmetric(vertical: 16)),
                   child: showImportance && categorisationMode == 'importance'
                     ? ListView.builder(
                       shrinkWrap: true,
@@ -627,6 +628,7 @@ class _TodoViewState extends State<TodoView> {
                                     .toList(),
                                   autoDeleteCompleted: autoDeleteCompleted,
                                   showImportance: showImportance,
+                                  showAsTimeToDue: showAsTimeToDue,
                                   categorisationMode: categorisationMode,
                                   importanceOptions: importanceOptions,
                                   editTodoDialog: (context, todo) =>
@@ -644,6 +646,7 @@ class _TodoViewState extends State<TodoView> {
                     todos: todos,
                     autoDeleteCompleted: autoDeleteCompleted,
                     showImportance: showImportance,
+                    showAsTimeToDue: showAsTimeToDue,
                     categorisationMode: categorisationMode,
                     importanceOptions: importanceOptions,
                     editTodoDialog: (context, todo) =>
@@ -660,7 +663,7 @@ class _TodoViewState extends State<TodoView> {
                 foregroundColor: Colors.white,
                 backgroundColor: Theme.of(context).colorScheme.primary,
                 onPressed: () => addTodoDialog(context),
-                child: Icon(Icons.add),
+                child: const Icon(Icons.add),
               ),
             ),
             Positioned(
@@ -668,7 +671,7 @@ class _TodoViewState extends State<TodoView> {
               right: 16,
               child: FloatingActionButton(
                 onPressed: openSettings,
-                child: Icon(Icons.settings),
+                child: const Icon(Icons.settings),
               ),
             ),
           ],
@@ -682,6 +685,7 @@ class TodoListView extends StatelessWidget {
   final List<Todo> todos;
   final bool autoDeleteCompleted;
   final bool showImportance;
+  final bool showAsTimeToDue;
   final String categorisationMode;
   final Map<int, MaterialColor> importanceOptions;
 
@@ -694,12 +698,44 @@ class TodoListView extends StatelessWidget {
     required this.todos,
     required this.autoDeleteCompleted,
     required this.showImportance,
+    required this.showAsTimeToDue,
     required this.categorisationMode,
     required this.importanceOptions,
     required this.editTodoDialog,
     required this.deleteTodo,
     required this.setTodoCompleted,
   });
+
+  String _showToDue(Todo todo) {
+    Duration difference = todo.dueDate!.difference(DateTime.now());
+    difference += const Duration(days: 1);
+    String timeString = '';
+    if (difference.inDays > 365) {
+      difference.inDays ~/ 365 == 1
+          ? timeString += '${difference.inDays ~/ 365} year '
+          : timeString += '${difference.inDays ~/ 365} years ';
+      difference -= Duration(days: (difference.inDays ~/ 365) * 365);
+    }
+    if (difference.inDays > 30) {
+      difference.inDays ~/ 30 == 1
+          ? timeString += '${difference.inDays ~/ 30} month '
+          : timeString += '${difference.inDays ~/ 30} months ';
+      difference -= Duration(days: (difference.inDays ~/ 30) * 30);
+    }
+    if (difference.inDays > 7) {
+      difference.inDays ~/ 7 == 1
+          ? timeString += '${difference.inDays ~/ 7} week '
+          : timeString += '${difference.inDays ~/ 7} weeks ';
+      difference -= Duration(days: (difference.inDays ~/ 7) * 7);
+    }
+    if (difference.inDays > 0) {
+      difference.inDays == 1
+          ? timeString += '${difference.inDays} day '
+          : timeString += '${difference.inDays} days ';
+      difference -= Duration(days: difference.inDays);
+    }
+    return timeString;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -746,14 +782,14 @@ class TodoListView extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 todo.dueDate != null ? Text(
-                  'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0].replaceAll(RegExp(r'-'), '/')}',
+                  showAsTimeToDue ? 'Due: in ${_showToDue(todo)}' : 'Due: ${todo.dueDate!.toLocal().toString().split(' ')[0].replaceAll(RegExp(r'-'), '/')}',
                   style: TextStyle(
                     fontSize: 14,
                   ),
                 )
                 : const Text('No due date'),
                 IconButton(
-                  icon: Icon(Icons.delete),
+                  icon: const Icon(Icons.delete),
                   onPressed: () {
                     deleteTodo(todo);
                   },

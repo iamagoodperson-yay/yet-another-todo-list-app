@@ -81,7 +81,7 @@ class _SettingsViewState extends State<SettingsView> {
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.grey,
                 onPressed: closeSettings,
-                child: Icon(Icons.arrow_back),
+                child: const Icon(Icons.arrow_back),
               ),
             ),
             Padding(
