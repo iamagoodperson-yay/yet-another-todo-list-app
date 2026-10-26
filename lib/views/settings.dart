@@ -270,7 +270,7 @@ class _SettingsViewState extends State<SettingsView> {
                   'I wonder what this button does...',
                   style: TextStyle(
                     fontSize: 10,
-                    color: puzzleMode ? Colors.red : Colors.white,
+                    color: puzzleMode ? Colors.red : Theme.of(context).colorScheme.onSurface,
                   ),
                 ),
               ),
