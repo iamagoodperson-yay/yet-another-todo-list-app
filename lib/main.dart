@@ -28,11 +28,7 @@ class MainApp extends StatefulWidget {
 class _MainAppState extends State<MainApp> {
   ThemeMode themeMode = ThemeMode.system;
 
-  void themeModeCallback(ThemeMode newThemeMode) {
-    setState(() {
-      themeMode = newThemeMode;
-    });
-  }
+  void themeModeCallback(ThemeMode newThemeMode) => themeMode = newThemeMode;
 
   void _loadThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -124,6 +120,7 @@ class _TodoViewState extends State<TodoView> {
           showImportance: showImportance,
           uwuifier: uwuifier,
           categorisationMode: categorisationMode,
+          categorisationModeCallback: () => _sortTodos(),
           themeMode: widget.themeMode,
           themeModeCallback: widget.themeModeCallback,
         ),
@@ -149,10 +146,11 @@ class _TodoViewState extends State<TodoView> {
         'uwu',
         'owo',
         '>w<',
+        '–w–',
+        '(｡>﹏<｡)',
         '( =ω=)..nyaa',
         '(=ↀωↀ=)✧',
         '(* ^ ω ^)',
-        '(U ᵕ U❁)',
         '(⁄ ⁄O⁄ω⁄O⁄ ⁄)'
       ];
       for(var char in ['r', 'l']) {
@@ -230,6 +228,8 @@ class _TodoViewState extends State<TodoView> {
         } else {
           return dateComparison;
         }
+      } else if (categorisationMode == 'alphabetical') {
+        return a.title.toLowerCase().compareTo(b.title.toLowerCase());
       }
       return 0;
     });
@@ -373,7 +373,7 @@ class _TodoViewState extends State<TodoView> {
       context: context,
       builder: (context) => StatefulBuilder(
         builder: (context, setState) => AlertDialog(
-          title: const Text("Edit Todo"),
+          title: Text(uwuifier ? 'Edit Todo >w<' : 'Edit Todo'),
           content: Form(
             key: _formKey,
             child: Column(
@@ -485,7 +485,7 @@ class _TodoViewState extends State<TodoView> {
                 _tempImportance = 4;
                 _selectedDate = null;
               },
-              child: const Text('Cancel'),
+              child: Text(uwuifier ? 'Cancew >.<' : 'Cancel'),
             ),
           ],
         ),
@@ -735,7 +735,7 @@ class TodoListView extends StatelessWidget {
                     setTodoCompleted(todo, value);
                   },
                 ),
-                if (showImportance && categorisationMode == 'dueDate')
+                if (showImportance && categorisationMode != 'importance')
                   Icon(
                     Icons.circle,
                     color: importanceOptions[todo.importance],

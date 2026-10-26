@@ -6,6 +6,7 @@ class SettingsView extends StatefulWidget {
   final bool showImportance;
   final bool uwuifier;
   final String categorisationMode;
+  final void Function() categorisationModeCallback;
   final ThemeMode themeMode;
   final void Function(ThemeMode) themeModeCallback;
 
@@ -15,6 +16,7 @@ class SettingsView extends StatefulWidget {
     required this.showImportance,
     required this.uwuifier,
     required this.categorisationMode,
+    required this.categorisationModeCallback,
     required this.themeMode,
     required this.themeModeCallback,
   });
@@ -28,6 +30,7 @@ class _SettingsViewState extends State<SettingsView> {
   late bool showImportance;
   late bool uwuifier;
   late String categorisationMode;
+  late void Function() categorisationModeCallback;
   late ThemeMode themeMode;
   late void Function(ThemeMode) themeModeCallback;
 
@@ -60,6 +63,7 @@ class _SettingsViewState extends State<SettingsView> {
     showImportance = widget.showImportance;
     uwuifier = widget.uwuifier;
     categorisationMode = widget.categorisationMode;
+    categorisationModeCallback = widget.categorisationModeCallback;
     themeMode = widget.themeMode;
     themeModeCallback = widget.themeModeCallback;
   }
@@ -126,7 +130,7 @@ class _SettingsViewState extends State<SettingsView> {
                     DropdownButtonFormField<String>(
                       initialValue: categorisationMode,
                       decoration: InputDecoration(
-                        labelText: uwuifier ? 'Sowt by :3' : 'Sort by',
+                        labelText: uwuifier ? 'Sowting Mode :3' : 'Sorting Mode',
                         border: OutlineInputBorder(),
                       ),
                       items: [
@@ -136,13 +140,18 @@ class _SettingsViewState extends State<SettingsView> {
                         ),
                         DropdownMenuItem(
                           value: 'dueDate',
-                          child: Text(uwuifier ? 'Due date (U ᵕ U❁)' : 'Due date'),
+                          child: Text(uwuifier ? 'Due date (⁄ ⁄O⁄ω⁄O⁄ ⁄)' : 'Due date'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'alphabetical',
+                          child: Text(uwuifier ? 'Awpabeticaw ( =ω=)..' : 'Alphabetical'),
                         ),
                       ],
                       onChanged: (value) {
                         if (value != null) {
                           setState(() {
                             categorisationMode = value;
+                            categorisationModeCallback();
                           });
                           saveSettings();
                         }
