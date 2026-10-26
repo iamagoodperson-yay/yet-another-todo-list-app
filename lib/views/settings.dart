@@ -5,6 +5,7 @@ class SettingsView extends StatefulWidget {
   final bool autoDeleteCompleted;
   final bool showImportance;
   final bool uwuifier;
+  final String categorisationMode;
   final ThemeMode themeMode;
   final void Function(ThemeMode) themeModeCallback;
 
@@ -13,6 +14,7 @@ class SettingsView extends StatefulWidget {
     required this.autoDeleteCompleted,
     required this.showImportance,
     required this.uwuifier,
+    required this.categorisationMode,
     required this.themeMode,
     required this.themeModeCallback,
   });
@@ -25,6 +27,7 @@ class _SettingsViewState extends State<SettingsView> {
   late bool autoDeleteCompleted;
   late bool showImportance;
   late bool uwuifier;
+  late String categorisationMode;
   late ThemeMode themeMode;
   late void Function(ThemeMode) themeModeCallback;
 
@@ -34,6 +37,7 @@ class _SettingsViewState extends State<SettingsView> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('autoDeleteCompleted', autoDeleteCompleted);
     await prefs.setBool('showImportance', showImportance);
+    await prefs.setString('categorisationMode', categorisationMode);
     await prefs.setBool('uwuifier', uwuifier);
     await prefs.setString('themeMode', themeMode.name);
   }
@@ -42,6 +46,7 @@ class _SettingsViewState extends State<SettingsView> {
     Navigator.pop(context, {
       'autoDeleteCompleted': autoDeleteCompleted,
       'showImportance': showImportance,
+      'categorisationMode': categorisationMode,
       'uwuifier': uwuifier,
       'themeMode': themeMode,
     });
@@ -54,6 +59,7 @@ class _SettingsViewState extends State<SettingsView> {
     autoDeleteCompleted = widget.autoDeleteCompleted;
     showImportance = widget.showImportance;
     uwuifier = widget.uwuifier;
+    categorisationMode = widget.categorisationMode;
     themeMode = widget.themeMode;
     themeModeCallback = widget.themeModeCallback;
   }
@@ -115,6 +121,31 @@ class _SettingsViewState extends State<SettingsView> {
                           uwuifier = value;
                         });
                         saveSettings();
+                      },
+                    ),
+                    DropdownButtonFormField<String>(
+                      initialValue: categorisationMode,
+                      decoration: InputDecoration(
+                        labelText: uwuifier ? 'Sowt by :3' : 'Sort by',
+                        border: OutlineInputBorder(),
+                      ),
+                      items: [
+                        DropdownMenuItem(
+                          value: 'importance',
+                          child: Text(uwuifier ? 'Impowtance (=ↀωↀ=)✧' : 'Importance'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'dueDate',
+                          child: Text(uwuifier ? 'Due date (U ᵕ U❁)' : 'Due date'),
+                        ),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            categorisationMode = value;
+                          });
+                          saveSettings();
+                        }
                       },
                     ),
                     DropdownButtonFormField<ThemeMode>(

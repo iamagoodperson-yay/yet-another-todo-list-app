@@ -101,6 +101,7 @@ class _TodoViewState extends State<TodoView> {
   bool autoDeleteCompleted = true;
   bool showImportance = true;
   bool uwuifier = true;
+  String categorisationMode = 'importance';
 
   late final TextEditingController _titleController;
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -122,6 +123,7 @@ class _TodoViewState extends State<TodoView> {
           autoDeleteCompleted: autoDeleteCompleted,
           showImportance: showImportance,
           uwuifier: uwuifier,
+          categorisationMode: categorisationMode,
           themeMode: widget.themeMode,
           themeModeCallback: widget.themeModeCallback,
         ),
@@ -133,6 +135,7 @@ class _TodoViewState extends State<TodoView> {
         autoDeleteCompleted = result['autoDeleteCompleted']!;
         showImportance = result['showImportance']!;
         uwuifier = result['uwuifier']!;
+        categorisationMode = result['categorisationMode']!;
       });
     }
   }
@@ -149,7 +152,7 @@ class _TodoViewState extends State<TodoView> {
         '( =ω=)..nyaa',
         '(=ↀωↀ=)✧',
         '(* ^ ω ^)',
-        ' (U ᵕ U❁)',
+        '(U ᵕ U❁)',
         '(⁄ ⁄O⁄ω⁄O⁄ ⁄)'
       ];
       for(var char in ['r', 'l']) {
@@ -162,12 +165,7 @@ class _TodoViewState extends State<TodoView> {
     }
     setState(() {
       todos.add(Todo(title: title, importance: importance, dueDate: dueDate));
-      todos.sort((a, b) {
-        if (a.dueDate == null && b.dueDate == null) return 0;
-        if (a.dueDate == null) return 1;
-        if (b.dueDate == null) return -1;
-        return a.dueDate!.compareTo(b.dueDate!);
-      });
+      _sortTodos();
     });
     _saveTodos();
     _titleController.clear();
@@ -185,6 +183,7 @@ class _TodoViewState extends State<TodoView> {
         todos[index].title = title;
         todos[index].importance = importance;
         todos[index].dueDate = dueDate;
+        _sortTodos();
       });
       _saveTodos();
       _titleController.clear();
@@ -206,6 +205,34 @@ class _TodoViewState extends State<TodoView> {
       todo.completed = completed;
     });
     _saveTodos();
+  }
+
+  void _sortTodos() {
+    todos.sort((a, b) {
+      if (categorisationMode == 'importance') {
+        // sorts by due date (importance sorted in ListBuilder)
+        if (a.dueDate == null && b.dueDate == null) return 0;
+        if (a.dueDate == null) return 1;
+        if (b.dueDate == null) return -1;
+
+        return a.dueDate!.compareTo(b.dueDate!);
+      } else if (categorisationMode == 'dueDate') {
+        // sorts by due date, then importnace
+        if (a.dueDate == null && b.dueDate == null) {
+            return a.importance.compareTo(b.importance);
+        }
+        if (a.dueDate == null) return 1;
+        if (b.dueDate == null) return -1;
+        
+        final dateComparison = a.dueDate!.compareTo(b.dueDate!);
+        if (dateComparison == 0) {
+          return a.importance.compareTo(b.importance);
+        } else {
+          return dateComparison;
+        }
+      }
+      return 0;
+    });
   }
 
   Future<DateTime?> selectDialogDate() async {
@@ -472,6 +499,7 @@ class _TodoViewState extends State<TodoView> {
       autoDeleteCompleted = prefs.getBool('autoDeleteCompleted') ?? true;
       showImportance = prefs.getBool('showImportance') ?? true;
       uwuifier = prefs.getBool('uwuifier') ?? true;
+      categorisationMode = prefs.getString('categorisationMode') ?? 'dueDate';
 
       final List<String> todoStrings = prefs.getStringList('todos') ?? [];
       todos = todoStrings.map((todoString) {
@@ -559,7 +587,7 @@ class _TodoViewState extends State<TodoView> {
                         _width * 0.05 : 8,
                     vertical: _height * 0.075,
                   ).add(EdgeInsets.symmetric(vertical: 16)),
-                  child: showImportance
+                  child: showImportance && categorisationMode == 'importance'
                     ? ListView.builder(
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
@@ -599,6 +627,8 @@ class _TodoViewState extends State<TodoView> {
                                     .toList(),
                                   autoDeleteCompleted: autoDeleteCompleted,
                                   showImportance: showImportance,
+                                  categorisationMode: categorisationMode,
+                                  importanceOptions: importanceOptions,
                                   editTodoDialog: (context, todo) =>
                                     editTodoDialog(context, todos.indexOf(todo)),
                                   deleteTodo: deleteTodo,
@@ -614,6 +644,8 @@ class _TodoViewState extends State<TodoView> {
                     todos: todos,
                     autoDeleteCompleted: autoDeleteCompleted,
                     showImportance: showImportance,
+                    categorisationMode: categorisationMode,
+                    importanceOptions: importanceOptions,
                     editTodoDialog: (context, todo) =>
                       editTodoDialog(context, todos.indexOf(todo)),
                     deleteTodo: deleteTodo,
@@ -650,6 +682,9 @@ class TodoListView extends StatelessWidget {
   final List<Todo> todos;
   final bool autoDeleteCompleted;
   final bool showImportance;
+  final String categorisationMode;
+  final Map<int, MaterialColor> importanceOptions;
+
   final void Function(BuildContext, Todo) editTodoDialog;
   final void Function(Todo) deleteTodo;
   final void Function(Todo, bool) setTodoCompleted;
@@ -659,6 +694,8 @@ class TodoListView extends StatelessWidget {
     required this.todos,
     required this.autoDeleteCompleted,
     required this.showImportance,
+    required this.categorisationMode,
+    required this.importanceOptions,
     required this.editTodoDialog,
     required this.deleteTodo,
     required this.setTodoCompleted,
@@ -698,6 +735,11 @@ class TodoListView extends StatelessWidget {
                     setTodoCompleted(todo, value);
                   },
                 ),
+                if (showImportance && categorisationMode == 'dueDate')
+                  Icon(
+                    Icons.circle,
+                    color: importanceOptions[todo.importance],
+                  ),
               ],
             ),
             trailing: Row(
