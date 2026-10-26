@@ -96,8 +96,8 @@ class TodoView extends StatefulWidget {
 class _TodoViewState extends State<TodoView> {
   bool autoDeleteCompleted = true;
   bool showImportance = true;
-  bool uwuifier = true;
   bool showAsTimeToDue = true;
+  bool uwuifier = true;
   String categorisationMode = 'importance';
 
   late final TextEditingController _titleController;
@@ -112,13 +112,14 @@ class _TodoViewState extends State<TodoView> {
   late Map<int, MaterialColor> importanceOptions;
   List<Todo> todos = [];
 
-  Future<void> openSettings() async {
+  Future<void> openSettings() async { // opens settings view and updates settings on return
     final result = await Navigator.push<Map<String, dynamic>>(
       context,
       MaterialPageRoute(
         builder: (context) => SettingsView(
           autoDeleteCompleted: autoDeleteCompleted,
           showImportance: showImportance,
+          showAsTimeToDue: showAsTimeToDue,
           uwuifier: uwuifier,
           categorisationMode: categorisationMode,
           categorisationModeCallback: () => _sortTodos(),
@@ -132,13 +133,14 @@ class _TodoViewState extends State<TodoView> {
       setState(() {
         autoDeleteCompleted = result['autoDeleteCompleted']!;
         showImportance = result['showImportance']!;
+        showAsTimeToDue = result['showAsTimeToDue']!;
         uwuifier = result['uwuifier']!;
         categorisationMode = result['categorisationMode']!;
       });
     }
   }
 
-  void addTodo() {
+  void addTodo() { //adds todo, uwuifies if uwuifier is true
     String title = _titleController.text.trim();
     int importance = _tempImportance;
     DateTime? dueDate = _selectedDate;
@@ -173,7 +175,7 @@ class _TodoViewState extends State<TodoView> {
     Navigator.pop(context);
   }
 
-  void editTodo(int index) {
+  void editTodo(int index) { // basically saves everything as everything
     String title = _titleController.text.trim();
     int importance = _tempImportance;
     DateTime? dueDate = _selectedDate;

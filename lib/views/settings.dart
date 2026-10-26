@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class SettingsView extends StatefulWidget {
   final bool autoDeleteCompleted;
   final bool showImportance;
+  final bool showAsTimeToDue;
   final bool uwuifier;
   final String categorisationMode;
   final void Function() categorisationModeCallback;
@@ -14,6 +15,7 @@ class SettingsView extends StatefulWidget {
     super.key,
     required this.autoDeleteCompleted,
     required this.showImportance,
+    required this.showAsTimeToDue,
     required this.uwuifier,
     required this.categorisationMode,
     required this.categorisationModeCallback,
@@ -28,6 +30,7 @@ class SettingsView extends StatefulWidget {
 class _SettingsViewState extends State<SettingsView> {
   late bool autoDeleteCompleted;
   late bool showImportance;
+  late bool showAsTimeToDue;
   late bool uwuifier;
   late String categorisationMode;
   late void Function() categorisationModeCallback;
@@ -40,8 +43,9 @@ class _SettingsViewState extends State<SettingsView> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('autoDeleteCompleted', autoDeleteCompleted);
     await prefs.setBool('showImportance', showImportance);
-    await prefs.setString('categorisationMode', categorisationMode);
+    await prefs.setBool('showAsTimeToDue', showAsTimeToDue);
     await prefs.setBool('uwuifier', uwuifier);
+    await prefs.setString('categorisationMode', categorisationMode);
     await prefs.setString('themeMode', themeMode.name);
   }
 
@@ -49,8 +53,9 @@ class _SettingsViewState extends State<SettingsView> {
     Navigator.pop(context, {
       'autoDeleteCompleted': autoDeleteCompleted,
       'showImportance': showImportance,
-      'categorisationMode': categorisationMode,
+      'showAsTimeToDue': showAsTimeToDue,
       'uwuifier': uwuifier,
+      'categorisationMode': categorisationMode,
       'themeMode': themeMode,
     });
   }
@@ -61,6 +66,7 @@ class _SettingsViewState extends State<SettingsView> {
 
     autoDeleteCompleted = widget.autoDeleteCompleted;
     showImportance = widget.showImportance;
+    showAsTimeToDue = widget.showAsTimeToDue;
     uwuifier = widget.uwuifier;
     categorisationMode = widget.categorisationMode;
     categorisationModeCallback = widget.categorisationModeCallback;
@@ -113,6 +119,16 @@ class _SettingsViewState extends State<SettingsView> {
                       onChanged: (value) {
                         setState(() {
                           showImportance = value;
+                        });
+                        saveSettings();
+                      },
+                    ),
+                    SwitchListTile(
+                      title: Text(uwuifier ? 'Show due as date :3' : 'Show due as date'),
+                      value: showAsTimeToDue,
+                      onChanged: (value) {
+                        setState(() {
+                          showAsTimeToDue = value;
                         });
                         saveSettings();
                       },
