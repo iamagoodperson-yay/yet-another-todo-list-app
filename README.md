@@ -14,7 +14,7 @@ Made for HackClub Terra (Week 1)
 - Light Dark Mode!
 - Surely nothing else is going on with this? (hint hint wink wink)
 
-# How to run
+# How to demo
 [Open in browser](https://iamagoodperson-yay.github.io/yet-another-todo-list-app/)
 
 # Additional info
